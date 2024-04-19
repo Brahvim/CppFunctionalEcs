@@ -6,7 +6,7 @@ namespace ecs {
         namespace floating {
 
             // using ecs_component_floating_t = size_t;
-            // static inline const ecs::components::floating::ecs_component_floating_t null = 0;
+            // static const ecs::components::floating::ecs_component_floating_t null = 0;
 
 #pragma region // Memory management.
             void attach(ecs::entity_t entity);
