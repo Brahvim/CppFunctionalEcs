@@ -30,6 +30,10 @@ namespace ecs {
             void set(ecs::entity_t p_entity, float p_value) {
                 s_mappings[p_entity] = p_value;
             }
+
+            void update(ecs::entity_t p_entity, float p_value) {
+                s_mappings[p_entity] += p_value;
+            }
 #pragma endregion
 
         }
