@@ -9,13 +9,13 @@ namespace ecs {
     static size_t s_num_entities = 0;
     static std::deque<ecs::entity_t> s_free_entities;
     static entity_limit_broken_cbck_t s_entity_limit_broken_cbck = [] {
-        std::cout << "Entity limit of `" << __SIZE_MAX__ << "` entities broken!" << std::endl;
+        std::cout << "Entity limit of `" << ecs::max_entity_count << "` entities broken!" << std::endl;
     };
 
 #pragma region // Memory management.
     inline ecs::entity_t create_entity() {
         if (s_free_entities.empty()) {
-            if (s_num_entities <= __SIZE_MAX__)
+            if (s_num_entities <= ecs::max_entity_count)
                 return ++s_num_entities;
             else {
                 s_entity_limit_broken_cbck();
@@ -41,7 +41,7 @@ namespace ecs {
 #pragma endregion
 
     inline ecs::entity_t get_num_entities() {
-        return s_num_entities;
+        return s_num_entities - s_free_entities.size();
     }
 
 }

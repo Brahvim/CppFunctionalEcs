@@ -4,8 +4,11 @@
 namespace ecs {
 
     using entity_t = size_t;
-    static inline const ecs::entity_t null = 0;
     typedef void(*entity_limit_broken_cbck_t)();
+
+    static inline const ecs::entity_t null = 0;
+    static inline const ecs::entity_t max_entity_count = __SIZE_MAX__;
+
 
 #pragma region // Memory management:
     entity_t create_entity();
