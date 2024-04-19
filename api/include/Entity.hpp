@@ -1,7 +1,7 @@
+#pragma once
 #include <cstddef>
 
 namespace ecs {
-
 
     using entity_t = size_t;
     inline const ecs::entity_t null_entity = 0;

@@ -22,5 +22,5 @@ file(GLOB test_include_hpp_files "${test_include_dir}/*.hpp")
 add_executable(EcsApiExample ${api_include_hpp_files} ${api_source_cpp_files}
                              ${test_include_hpp_files} ${test_source_cpp_files})
 
-#target_link_libraries()
+# target_link_libraries()
 target_compile_features(EcsApiExample PUBLIC cxx_std_23)
