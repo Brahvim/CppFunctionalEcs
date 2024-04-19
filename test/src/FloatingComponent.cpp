@@ -10,7 +10,7 @@ namespace ecs {
 
 #pragma region // Memory management.
             void attach(ecs::entity_t p_entity) {
-                s_mappings[p_entity] = 0;
+                ecs::components::floating::attach(p_entity, 0);
             }
 
             void detach(ecs::entity_t p_entity) {
@@ -19,6 +19,9 @@ namespace ecs {
 
             void attach(ecs::entity_t p_entity, float p_value) {
                 s_mappings[p_entity] = p_value;
+                ecs::add_entity_destructor(p_entity, [](ecs::entity_t p_destroyed) {
+                    ecs::components::floating::detach(p_destroyed);
+                });
             }
 #pragma endregion
 
