@@ -2,7 +2,9 @@
 
 namespace ecs {
 
+
     using entity_t = size_t;
+    inline const ecs::entity_t null_entity = 0;
     typedef void(*entity_limit_broken_cbck_t)();
 
 #pragma region // Memory management:
