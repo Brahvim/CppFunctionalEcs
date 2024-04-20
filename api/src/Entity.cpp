@@ -40,10 +40,9 @@ namespace ecs {
             s_free_entities.push_back(p_entity); // Add it to the free list,
             // ...Call all callbacks that want to know when it gets destroyed
             // (probably components willing to auto-detach):
-            for (auto c : s_destructor_callbacks[p_entity]) {
-                std::cout << "Called an entity destructor!";
+            for (auto c : s_destructor_callbacks[p_entity])
+                // std::cout << "Called an entity destructor!" << std::endl;
                 c(p_entity);
-            }
         }
     }
 #pragma endregion
