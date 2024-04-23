@@ -21,5 +21,5 @@ file(GLOB test_header_hpp_files "${test_include_dir}/*.hpp")
 add_executable(EcsApiExample ${api_header_hpp_files} ${test_header_hpp_files}
                              ${api_source_cpp_files} ${test_source_cpp_files})
 
-# target_link_libraries()
+target_compile_options(EcsApiExample PUBLIC "-save-temps")
 target_compile_features(EcsApiExample PUBLIC cxx_std_23)
