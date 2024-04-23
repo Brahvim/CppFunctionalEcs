@@ -43,7 +43,7 @@ namespace ecs {
             // (probably components willing to auto-detach):
             for (auto c : s_entities)
                 // { std::cout << "Called an entity destructor!" << std::endl;
-                c.destructor();
+                c->destructor();
         }
     }
 #pragma endregion

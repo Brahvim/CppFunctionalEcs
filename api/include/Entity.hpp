@@ -16,7 +16,7 @@ namespace ecs {
 
 #pragma region // Memory management:
     ecs::entity_t create_entity();
-    void destroy_entity(entity entity);
+    void destroy_entity(entity_t entity);
     // void set_entity_limit_broken_cbck(entity_limit_broken_cbck_t function);
 #pragma endregion
 
@@ -33,11 +33,10 @@ namespace ecs {
         std::bitset<4> component_flags;
 
     private:
-        friend void ecs::destroy_entity();
         friend ecs::entity_t ecs::create_entity();
+        friend void ecs::destroy_entity(entity_t entity);
         friend void ecs::attach_entity_destructor(ecs::entity_t entity, ecs::destructor_cbck_t destructor);
         friend void ecs::detach_entity_destructor(ecs::entity_t entity, ecs::destructor_cbck_t destructor);
-
 
         ecs::destructor_cbck_t destructor;
 
