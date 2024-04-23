@@ -1,26 +1,48 @@
 #pragma once
+#include <bitset>
 #include <cstddef>
 
 namespace ecs {
 
-    using entity = size_t;
-    typedef void(*destructor_cbck_t)(ecs::entity entity);
-    // typedef void(*entity_limit_broken_cbck_t)();
+    class entity;
 
-    static const ecs::entity null = 0;
-    // static const ecs::entity_t max_entity_count = __SIZE_MAX__;
+    using entity_t = entity*;
+    using destructor_cbck_t = void(*)();
+    // typedef void(*destructor_cbck_t)(ecs::entity entity);
+    // using destructor_cbck_t = void(*)(ecs::entity entity); // Memorize this, Brahvim! Memorize this!!1
+
+    // typedef void(*entity_limit_broken_cbck_t)();
+    // static const ecs::entity max_entity_count = __SIZE_MAX__;
 
 #pragma region // Memory management:
-    entity create_entity();
+    ecs::entity_t create_entity();
     void destroy_entity(entity entity);
     // void set_entity_limit_broken_cbck(entity_limit_broken_cbck_t function);
 #pragma endregion
 
-    ecs::entity get_num_entities();
+    size_t get_num_entities();
 
-#pragma region // Callbacks.
-    void add_entity_destructor(ecs::entity entity, ecs::destructor_cbck_t destructor);
-    void remove_entity_destructor(ecs::entity entity, ecs::destructor_cbck_t destructor);
+#pragma region // Callback management.
+    void attach_entity_destructor(ecs::entity_t entity, ecs::destructor_cbck_t destructor);
+    void detach_entity_destructor(ecs::entity_t entity, ecs::destructor_cbck_t destructor);
 #pragma endregion
+
+    class entity {
+
+    public:
+        std::bitset<4> component_flags;
+
+    private:
+        friend void ecs::destroy_entity();
+        friend ecs::entity_t ecs::create_entity();
+        friend void ecs::attach_entity_destructor(ecs::entity_t entity, ecs::destructor_cbck_t destructor);
+        friend void ecs::detach_entity_destructor(ecs::entity_t entity, ecs::destructor_cbck_t destructor);
+
+
+        ecs::destructor_cbck_t destructor;
+
+        entity() { }
+
+    };
 
 }

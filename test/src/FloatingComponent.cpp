@@ -19,7 +19,7 @@ namespace ecs {
 
             void attach(ecs::entity p_entity, float p_value) {
                 s_mappings[p_entity] = p_value;
-                ecs::add_entity_destructor(p_entity, [](ecs::entity_t p_destroyed) {
+                ecs::add_entity_destructor(p_entity, [](ecs::entity p_destroyed) {
                     ecs::components::floating::detach(p_destroyed);
                 });
             }
