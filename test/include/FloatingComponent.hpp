@@ -6,15 +6,15 @@ namespace ecs {
         namespace floating {
 
 #pragma region // Memory management.
-            void attach(ecs::entity_t entity);
-            void detach(ecs::entity_t entity);
-            void attach(ecs::entity_t entity, float value);
+            void attach(ecs::entity entity);
+            void detach(ecs::entity entity);
+            void attach(ecs::entity entity, float value);
 #pragma endregion
 
 #pragma region // Getting and setting!...
-            float get(ecs::entity_t entity);
-            void set(ecs::entity_t entity, float value);
-            void update(ecs::entity_t entity, float value);
+            float get(ecs::entity entity);
+            void set(ecs::entity entity, float value);
+            void update(ecs::entity entity, float value);
 #pragma endregion
 
         }
