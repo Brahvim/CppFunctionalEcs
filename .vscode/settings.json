@@ -55,7 +55,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "optional": "cpp"
     },
     "c-cpp-flylint.excludeFromWorkspacePaths": [
         "build",
