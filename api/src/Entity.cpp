@@ -19,7 +19,7 @@ namespace ecs {
     ecs::entity_t create_entity() {
         if (s_free_entities.empty()) {
             ++s_num_entities;
-            return s_entities.emplace_back(new ecs::entity());
+            return s_entities.emplace_back(new ecs::ecs_entity());
             // if (s_num_entities <= ecs::max_entity_count)
             // else {
             //     s_entity_limit_broken_cbck();
