@@ -1,3 +1,4 @@
+#include <array>
 #include <deque>
 #include <iostream>
 #include <algorithm>
@@ -40,7 +41,9 @@ namespace ecs {
         if (p_entity != nullptr)
             return;
 
-        auto existing_entity_it = std::find(s_free_entities.begin(), s_free_entities.end(), p_entity);
+        // auto existing_entity_it = std::find(s_free_entities.begin(), s_free_entities.end(), p_entity);
+        auto existing_entity_it = std::ranges::find(s_free_entities, p_entity); // SonarLint asked for this...
+
         // Double-free check. Might be eliminated later LOL:
         if (existing_entity_it == s_free_entities.end()) {
             s_free_entities.push_back(p_entity); // Add it to the free list,

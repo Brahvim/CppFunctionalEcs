@@ -5,16 +5,15 @@
 namespace ecs {
 
     class ecs_entity;
-    class ecs_component;
 
     using entity_t = ecs_entity*;
     using destructor_cbck_t = void(*)();
-    const size_t component_flags_bits = 8;
-    const size_t component_flags_id_count = ecs::component_flags_bits / 2;
-    const size_t component_flags_group_count = ecs::component_flags_bits - ecs::component_flags_id_count;
+    static inline const size_t component_flags_bits = 8;
+    static inline const size_t component_flags_id_count = ecs::component_flags_bits / 2;
+    static inline const size_t component_flags_group_count = ecs::component_flags_bits - ecs::component_flags_id_count;
     // typedef void(*destructor_cbck_t)(ecs::ecs_entity ecs_entity);
     // using destructor_cbck_t = void(*)(ecs::ecs_entity ecs_entity); // Memorize this, Brahvim! Memorize this!!1
-
+    // 
     // typedef void(*entity_limit_broken_cbck_t)();
     // static const ecs::ecs_entity max_entity_count = __SIZE_MAX__;
 
@@ -45,12 +44,6 @@ namespace ecs {
         ecs::destructor_cbck_t destructor_callback;
 
         ecs_entity() { }
-
-    };
-
-    class ecs_component {
-
-        
 
     };
 
