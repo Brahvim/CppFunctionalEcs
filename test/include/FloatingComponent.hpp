@@ -3,7 +3,9 @@
 #include "Entity.hpp"
 
 namespace ecs {
+
     namespace components {
+
         namespace floating {
 
 #pragma region // Memory management.
@@ -15,9 +17,11 @@ namespace ecs {
 #pragma region // Getting and setting!...
             float get(ecs::entity *ecs_entity);
             void set(ecs::entity *ecs_entity, float value);
-            void update(ecs::entity *ecs_entity, float value);
+            void modify(ecs::entity *ecs_entity, float value);
 #pragma endregion
 
         }
+
     }
+
 }

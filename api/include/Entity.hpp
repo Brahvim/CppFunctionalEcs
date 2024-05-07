@@ -5,8 +5,8 @@
 namespace ecs {
 
     class entity;
-
     using destructor_cbck_t = void(*)(ecs::entity *p_destroyed);
+
     static inline const size_t component_flags_bits = 8;
     static inline const size_t component_flags_id_count = ecs::component_flags_bits / 2;
     static inline const size_t component_flags_group_count = ecs::component_flags_bits - ecs::component_flags_id_count;

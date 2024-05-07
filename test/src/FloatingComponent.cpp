@@ -3,7 +3,9 @@
 #include "FloatingComponent.hpp"
 
 namespace ecs {
+
     namespace components {
+
         namespace floating {
 
             static std::unordered_map<ecs::entity*, float> s_mappings;
@@ -34,11 +36,13 @@ namespace ecs {
                 s_mappings[p_entity] = p_value;
             }
 
-            void update(ecs::entity *p_entity, float p_value) {
+            void modify(ecs::entity *p_entity, float p_value) {
                 s_mappings[p_entity] += p_value;
             }
 #pragma endregion
 
         }
+
     }
+
 }
