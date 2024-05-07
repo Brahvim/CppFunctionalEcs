@@ -4,7 +4,7 @@
 #include "FloatingComponent.hpp"
 
 int main() {
-    ecs::ecs_entity e = ecs::create_entity();
+    ecs::entity *e = ecs::create_entity();
     std::cout << "Number of entities: `" << ecs::get_num_entities() << "`." << std::endl;
 
     ecs::components::floating::attach(e, 9);
