@@ -129,10 +129,6 @@ static size_t s_component_allocations;
 static size_t s_num_position_components;
 static size_t s_num_free_position_components;
 
-static struct component_type s_position_component_type = {
-	.creation_function = position_component_create,
-	.destruction_function = nullptr,
-};
 
 static struct entity *s_position_component_entities; // Same size as `s_position_components`. Used for mapping!
 static struct position_component *s_position_components;
@@ -153,11 +149,15 @@ enum component_status position_component_create(struct entity *entity, struct co
 	return component_status::OK; // Return a pointer to it.
 }
 
+static struct component_type s_position_component_type = {
+	.creation_function = position_component_create,
+	.destruction_function = nullptr,
+};
+
 float position_component_get_x(struct entity* entity) {
 	const struct position_component* to_read = entity_get_component<struct position_component>(entity);
 	return to_read ? to_read->x : 0;
 }
-
 
 void ecs_test_main() {
 	struct entity *e = nullptr;
