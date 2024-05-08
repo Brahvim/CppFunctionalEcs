@@ -67,8 +67,12 @@ static struct entity *s_free_entities;
 static size_t *s_num_entity_allocations;
 
 // ...Whatever:
-enum entity_status create_entity(struct entity**);
-enum entity_status destroy_entity(struct entity* entity);
+enum entity_status create_entity(struct entity**) {
+}
+
+enum entity_status destroy_entity(struct entity* entity) {
+    return entity_status::OK;
+}
 
 // Could this use a base type...? No `virtual`s though, please.
 enum entity_status entity_attach_component(struct entity *entity, struct component *component_handle) {
@@ -121,28 +125,12 @@ enum position_component_status position_component_create(struct entity* entity, 
     return position_component_status::OK; // Return a pointer to it.
 }
 
-// struct position_component *get_position_component(struct entity *entity) {
-//     struct component *component = nullptr;
-//     const size_t max = entity->num_components;
-
-//     for (size_t i = 0; i < max; ++i) {
-//         component = &entity->components[i];
-
-//         if (component > s_position_components
-//         && component < s_position_components
-//         + (s_num_position_components * sizeof(struct position_component)))
-//             break;
-//     }
-
-//     return static_cast<struct position_component*>(component);
-// }
-
 float position_component_get_x(struct entity* entity) {
     const struct position_component* to_read = entity_get_component<struct position_component>(entity);
     return to_read ? to_read->x : 0;
 }
 
-int main() {
+void ecs_test_main() {
     struct entity *e;
     create_entity(&e);
 
