@@ -13,8 +13,8 @@ namespace ecs {
     enum entity_status destroy_entity(struct entity* entity);
     enum entity_status entity_attach_component(struct entity *entity, struct component *component_handle);
 
-    template<typename component_t>
-        requires std::derived_from<component_t, component>
+    template<class component_t>
+        requires std::derived_from<component_t, ecs::component>
     component_t* entity_get_component(struct entity* entity);
 
 }

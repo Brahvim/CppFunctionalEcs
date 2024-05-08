@@ -36,14 +36,14 @@ namespace ecs {
         return ecs::entity_status::OK;
     };
 
-    template<typename component_t>
-        requires std::derived_from<component_t, component>
+    template<class component_t>
+        requires std::derived_from<component_t, ecs::component>
     component_t* entity_get_component(struct entity* entity) {
         component_t* component = nullptr;
         const size_t max = entity->num_components;
 
         for (size_t i = 0; i < max; ++i) {
-            component = static_cast<component_t*>(entity->components[i]);
+            component = static_cast<component_t*>(&entity->components[i]);
             if (component)
                 break;
         }
