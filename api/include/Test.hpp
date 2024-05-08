@@ -6,7 +6,7 @@ struct entity; // May need not be opaque at all.
 struct component { }; // Marker! ...Uhh, Miss Performance, are you still around?
 struct position_component;
 
-enum class entity_status : size_t {
+enum struct entity_status : size_t {
 
     OK = 0,
 
@@ -68,6 +68,7 @@ static size_t *s_num_entity_allocations;
 
 // ...Whatever:
 enum entity_status create_entity(struct entity**) {
+    return entity_status::OK;
 }
 
 enum entity_status destroy_entity(struct entity* entity) {
@@ -84,14 +85,14 @@ enum entity_status entity_attach_component(struct entity *entity, struct compone
     return entity_status::OK;
 };
 
-template<typename Component>
-    requires std::derived_from<Component, component>
-Component* entity_get_component(struct entity* entity) {
-    Component* component = nullptr;
+template<typename component_t>
+    requires std::derived_from<component_t, component>
+component_t* entity_get_component(struct entity* entity) {
+    component_t* component = nullptr;
     const size_t max = entity->num_components;
 
     for (size_t i = 0; i < max; ++i) {
-        component = static_cast<Component*>(&entity->components[i]);
+        component = static_cast<component_t*>(&entity->components[i]);
         if (component)
             break;
     }
@@ -112,6 +113,8 @@ struct position_component : public component {
 static size_t s_component_allocations;
 static size_t s_num_position_components;
 static size_t s_num_free_position_components;
+
+static struct entity *s_position_component_entities; // Same size as `s_position_components`.
 static struct position_component *s_position_components;
 static struct position_component *s_free_position_components;
 
@@ -131,7 +134,7 @@ float position_component_get_x(struct entity* entity) {
 }
 
 void ecs_test_main() {
-    struct entity *e;
+    struct entity *e = nullptr;
     create_entity(&e);
 
     struct position_component *position = nullptr;
