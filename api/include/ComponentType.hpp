@@ -1,16 +1,20 @@
 #pragma once
 
-#include "EcsEnums.hpp"
+#include "EcsApiStatusEnums.hpp"
 
 namespace ecs {
 
+    struct entity;
+    struct component;
+
+    // using component_creation_function = enum ecs::component_status(*)(const struct ecs::entity *entity, struct ecs::component **component_id_storage);
+    using component_destruction_function_t = enum ecs::component_status(*)(const struct ecs::entity *entity);
+
     struct component_type final {
 
-        // using component_creation_function = enum component_status(*)(struct entity *entity, struct component **component_id_storage);
-        using component_destruction_function = enum component_status(*)(struct entity *entity);
+        // ecs::component_creation_function creation_function;
 
-        // ecs::component_type::component_creation_function creation_function;
-        ecs::component_type::component_destruction_function destruction_function;
+        ecs::component_destruction_function_t destruction_function;
 
 
     };

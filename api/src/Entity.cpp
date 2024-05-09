@@ -2,9 +2,22 @@
 #include <cstdlib>
 
 #include "Entity.hpp"
-#include "EcsEnums.hpp"
 
 namespace ecs {
+
+#pragma region // `ecs::entity_status` operators.
+    enum ecs::entity_status operator~(enum ecs::entity_status p_value) {
+        return static_cast<enum ecs::entity_status>(~static_cast<size_t>(p_value));
+    }
+
+    enum ecs::entity_status operator&(enum ecs::entity_status p_lhs, enum ecs::entity_status p_rhs) {
+        return static_cast<enum ecs::entity_status>(static_cast<size_t>(p_lhs) & static_cast<size_t>(p_rhs));
+    }
+
+    enum ecs::entity_status operator|(enum ecs::entity_status p_lhs, enum ecs::entity_status p_rhs) {
+        return static_cast<enum ecs::entity_status>(static_cast<size_t>(p_lhs) | static_cast<size_t>(p_rhs));
+    }
+#pragma endregion
 
     struct entity final {
 
@@ -12,15 +25,22 @@ namespace ecs {
 
     };
 
+#pragma region // Entity data arrays.
     static size_t s_num_entities;
     static struct ecs::entity *s_entities;
     static struct ecs::entity **s_free_entities;
 
     static size_t s_num_entity_allocations;
     static size_t *s_entity_component_counts;
-    static struct component **s_entity_component_pointers_list;
+    static struct ecs::component **s_entity_component_pointers_list;
+#pragma endregion
 
     // ...Whatever:
+    enum ecs::entity_status destroy_entity(struct ecs::entity *p_entity) {
+        delete p_entity;
+        return ecs::entity_status::OK;
+    }
+
     enum ecs::entity_status create_entity(struct ecs::entity **p_entity_storage) {
         try {
             *p_entity_storage = new struct ecs::entity;
@@ -28,11 +48,6 @@ namespace ecs {
             return ecs::entity_status::MALLOC;
         }
 
-        return ecs::entity_status::OK;
-    }
-
-    enum ecs::entity_status destroy_entity(struct ecs::entity *p_entity) {
-        delete p_entity;
         return ecs::entity_status::OK;
     }
 
@@ -48,7 +63,7 @@ namespace ecs {
     }
 
     // Could this use a base type...? No `virtual`s though, please.
-    enum ecs::entity_status entity_attach_component(struct ecs::entity *p_entity, struct component *p_component) {
+    enum ecs::entity_status entity_attach_component(struct ecs::entity const *p_entity, struct ecs::component const *p_component) {
         if (!(p_entity && p_component))
             return ecs::entity_status::NULL_ENTITY & ecs::entity_status::NULL_COMPONENT;
 

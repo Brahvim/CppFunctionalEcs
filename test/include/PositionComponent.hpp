@@ -10,8 +10,8 @@ namespace ecs {
 
         namespace position {
 
-            float get_x(struct entity* entity);
-            enum component_status create(struct entity *entity, struct component **storage);
+            float get_x(const struct ecs::entity *entity);
+            enum ecs::component_status create(const struct ecs::entity *entity, struct ecs::component **storage);
 
         }
 
