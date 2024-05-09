@@ -21,11 +21,13 @@ namespace ecs {
 
 			struct position_component : public component {
 
-				float x;
+				float x = 0;
 
-				float y;
+				float y = 0;
 
-				float z;
+				float z = 0;
+
+				position_component() : component(&s_position_component_type) { }
 
 			};
 
@@ -34,8 +36,8 @@ namespace ecs {
 				// if (s_num_position_components < s_component_allocations)
 				//     struct position_component *to_attach = nullptr; // Allocate one!
 
-				*storage = static_cast<struct component*>(new position_component);
-				struct component *to_attach = *storage; // Allocate for this first!
+				*storage = static_cast<struct component*>(new position_component());
+				struct component *to_attach = *storage; // Allocate for this first
 
 				// s_position_component_entities[(to_attach - static_cast<struct component*>(s_position_components)) / sizeof(struct position_component)] = entity;
 				ecs::entity_attach_component(entity, *storage);

@@ -4,7 +4,7 @@
 
 namespace ecs {
 
-    struct component_type {
+    struct component_type final {
 
         using component_destruction_function = enum component_status(*)(struct entity *entity);
         using component_creation_function = enum component_status(*)(struct entity *entity, struct component **component_id_storage);
