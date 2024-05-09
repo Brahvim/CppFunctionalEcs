@@ -19,16 +19,10 @@ namespace ecs {
     }
 #pragma endregion
 
-    struct entity final {
-
-        size_t id;
-
-    };
-
 #pragma region // Entity data arrays.
     static size_t s_num_entities;
-    static struct ecs::entity *s_entities;
-    static struct ecs::entity **s_free_entities;
+    static ecs::entity *s_entities;
+    static ecs::entity **s_free_entities;
 
     static size_t s_num_entity_allocations;
     static size_t *s_entity_component_counts;
@@ -36,14 +30,13 @@ namespace ecs {
 #pragma endregion
 
     // ...Whatever:
-    enum ecs::entity_status destroy_entity(struct ecs::entity *p_entity) {
-        delete p_entity;
+    enum ecs::entity_status destroy_entity(ecs::entity) {
         return ecs::entity_status::OK;
     }
 
-    enum ecs::entity_status create_entity(struct ecs::entity **p_entity_storage) {
+    enum ecs::entity_status create_entity(ecs::entity *p_storage) {
         try {
-            *p_entity_storage = new struct ecs::entity;
+            *p_storage = 0ULL;
         } catch (std::bad_alloc&) {
             return ecs::entity_status::MALLOC;
         }
@@ -51,19 +44,19 @@ namespace ecs {
         return ecs::entity_status::OK;
     }
 
-    struct ecs::component* entity_get_component(struct ecs::entity const *p_entity) {
+    struct ecs::component* entity_get_component(const ecs::entity p_entity, const ecs::component_type *p_type) {
         struct ecs::component *component = nullptr;
-        const size_t max = s_entity_component_counts[p_entity->id];
+        const size_t max = s_entity_component_counts[p_entity];
 
         for (size_t i = 0; i < max; ++i)
-            if ((component = s_entity_component_pointers_list[i]))
+            if ((component = s_entity_component_pointers_list[i])->type == p_type)
                 break;
 
         return component;
     }
 
     // Could this use a base type...? No `virtual`s though, please.
-    enum ecs::entity_status entity_attach_component(struct ecs::entity const *p_entity, struct ecs::component const *p_component) {
+    enum ecs::entity_status entity_attach_component(ecs::entity const *p_entity, struct ecs::component const *p_component) {
         if (!(p_entity && p_component))
             return ecs::entity_status::NULL_ENTITY & ecs::entity_status::NULL_COMPONENT;
 

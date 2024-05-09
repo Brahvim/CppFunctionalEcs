@@ -5,6 +5,8 @@
 
 namespace ecs {
 
+    // Okay - *this one* needs to be a `struct`, unlike `ecs::entity`, which turned into a `using`!
+
     struct component {
 
         const struct ecs::component_type *type;

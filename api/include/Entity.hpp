@@ -7,11 +7,11 @@
 
 namespace ecs {
 
-    struct entity; // Opaque type.
+    using entity = size_t;
 
-    enum ecs::entity_status destroy_entity(struct ecs::entity *entity);
-    enum ecs::entity_status create_entity(struct ecs::entity **entity_storage);
-    struct ecs::component* entity_get_component(struct ecs::entity const *p_entity);
-    enum ecs::entity_status entity_attach_component(struct ecs::entity const *entity, struct ecs::component const *component);
+    enum ecs::entity_status destroy_entity(ecs::entity entity);
+    enum ecs::entity_status create_entity(ecs::entity *entity_storage);
+    struct ecs::component* entity_get_component(const ecs::entity entity, ecs::component_type *type);
+    enum ecs::entity_status entity_attach_component(const ecs::entity entity, const struct ecs::component *component);
 
 }
