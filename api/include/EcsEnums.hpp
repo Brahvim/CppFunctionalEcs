@@ -28,12 +28,12 @@ namespace ecs {
 
     };
 
-    enum entity_status operator~(enum entity_status value);
-    enum entity_status operator&(enum entity_status lhs, enum entity_status rhs);
-    enum entity_status operator|(enum entity_status lhs, enum entity_status rhs);
+    enum ecs::entity_status operator~(enum ecs::entity_status value);
+    enum ecs::entity_status operator&(enum ecs::entity_status lhs, enum ecs::entity_status rhs);
+    enum ecs::entity_status operator|(enum ecs::entity_status lhs, enum ecs::entity_status rhs);
 
-    enum component_status operator~(enum component_status value);
-    enum component_status operator&(enum component_status lhs, enum component_status rhs);
-    enum component_status operator|(enum component_status lhs, enum component_status rhs);
+    enum ecs::component_status operator~(enum ecs::component_status value);
+    enum ecs::component_status operator&(enum ecs::component_status lhs, enum ecs::component_status rhs);
+    enum ecs::component_status operator|(enum ecs::component_status lhs, enum ecs::component_status rhs);
 
 }

@@ -1,3 +1,4 @@
+#include <memory>
 #include <cstdlib>
 
 #include "Entity.hpp"
@@ -12,43 +13,47 @@ namespace ecs {
     };
 
     static size_t s_num_entities;
-    static struct entity *s_entities;
-    static struct entity **s_free_entities;
+    static struct ecs::entity *s_entities;
+    static struct ecs::entity **s_free_entities;
 
     static size_t s_num_entity_allocations;
     static size_t *s_entity_component_counts;
     static struct component **s_entity_component_pointers_list;
 
     // ...Whatever:
-    enum entity_status create_entity(struct entity** p_entity_storage) {
+    enum ecs::entity_status create_entity(struct ecs::entity **p_entity_storage) {
+        try {
+            *p_entity_storage = new struct ecs::entity;
+        } catch (std::bad_alloc&) {
+            return ecs::entity_status::MALLOC;
+        }
+
         return ecs::entity_status::OK;
     }
 
-    enum entity_status destroy_entity(struct entity* p_entity) {
+    enum ecs::entity_status destroy_entity(struct ecs::entity *p_entity) {
+        delete p_entity;
         return ecs::entity_status::OK;
     }
 
-    // Could this use a base type...? No `virtual`s though, please.
-    enum entity_status entity_attach_component(struct entity *p_entity, struct component *p_component) {
-
-        if (!(p_entity && p_component))
-            return entity_status::NULL_ENTITY & entity_status::NULL_COMPONENT;
-
-        // entity->components += p_component; // Add it there.
-        return ecs::entity_status::OK;
-    };
-
-    template<class component_t>
-        requires std::derived_from<component_t, ecs::component>
-    component_t* entity_get_component(struct entity const *p_entity) {
-        component_t *component = nullptr;
+    struct ecs::component* entity_get_component(struct ecs::entity const *p_entity) {
+        struct ecs::component *component = nullptr;
         const size_t max = s_entity_component_counts[p_entity->id];
 
         for (size_t i = 0; i < max; ++i)
-            if ((component = static_cast<component_t*>(&s_entity_component_pointers_list[i])))
+            if ((component = s_entity_component_pointers_list[i]))
                 break;
 
         return component;
     }
+
+    // Could this use a base type...? No `virtual`s though, please.
+    enum ecs::entity_status entity_attach_component(struct ecs::entity *p_entity, struct component *p_component) {
+        if (!(p_entity && p_component))
+            return ecs::entity_status::NULL_ENTITY & ecs::entity_status::NULL_COMPONENT;
+
+        // entity->components += p_component; // Add it there.
+        return ecs::entity_status::OK;
+    };
 
 }
