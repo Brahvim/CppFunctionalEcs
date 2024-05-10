@@ -12,7 +12,7 @@ namespace ecs {
 
             enum class status : size_t {
 
-                OK = 0,
+                NONE = 0,
 
                 MALLOC = 1,
 

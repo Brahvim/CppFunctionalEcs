@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ComponentType.hpp"
-#include "EcsApiStatusEnums.hpp"
 
 namespace ecs {
 
