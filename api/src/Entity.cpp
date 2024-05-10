@@ -56,7 +56,7 @@ namespace ecs {
     }
 
     // Could this use a base type...? No `virtual`s though, please.
-    enum ecs::entity_status entity_attach_component(ecs::entity const *p_entity, struct ecs::component const *p_component) {
+    enum ecs::entity_status entity_attach_component(const ecs::entity p_entity, const struct ecs::component *p_component) {
         if (!(p_entity && p_component))
             return ecs::entity_status::NULL_ENTITY & ecs::entity_status::NULL_COMPONENT;
 
