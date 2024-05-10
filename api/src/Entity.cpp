@@ -20,17 +20,18 @@ namespace ecs {
 #pragma endregion
 
 #pragma region // Entity data arrays.
-    static size_t s_num_entities;
-    static ecs::entity *s_entities;
-    static ecs::entity **s_free_entities;
+    static size_t s_num_entities = 0;
+    static size_t s_num_free_entity = 0;
+    static size_t s_num_entity_allocations = 8;
+    static size_t s_num_free_entity_allocations = 0;
 
-    static size_t s_num_entity_allocations;
-    static size_t *s_entity_component_counts;
-    static struct ecs::component **s_entity_component_pointers_list;
+    static size_t *s_entity_component_counts = new size_t(8);
+    static ecs::entity *s_free_entities = new ecs::entity(s_num_free_entity_allocations);
+    static struct ecs::component **s_entity_component_pointers_list = new struct ecs::component* [8]; // I like formatting it like this, but VCFormat won't :(
 #pragma endregion
 
     // ...Whatever:
-    enum ecs::entity_status destroy_entity(ecs::entity) {
+    enum ecs::entity_status destroy_entity(const ecs::entity p_entity) {
         return ecs::entity_status::OK;
     }
 
@@ -44,12 +45,13 @@ namespace ecs {
         return ecs::entity_status::OK;
     }
 
+    // If you get `nullptr`, you know it wasn't attached. No error code needed.
     struct ecs::component* entity_get_component(const ecs::entity p_entity, const ecs::component_type *p_type) {
         struct ecs::component *component = nullptr;
-        const size_t max = s_entity_component_counts[p_entity];
+        const size_t max = s_entity_component_counts [p_entity];
 
         for (size_t i = 0; i < max; ++i)
-            if ((component = s_entity_component_pointers_list[i])->type == p_type)
+            if ((component = s_entity_component_pointers_list [i])->type == p_type)
                 break;
 
         return component;

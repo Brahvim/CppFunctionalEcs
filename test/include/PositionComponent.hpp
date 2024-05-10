@@ -22,11 +22,24 @@ namespace ecs {
 
             };
 
+            extern const struct ecs::component_type position_component_type;
+
+            struct position_component : public ecs::component {
+
+                float x = 0;
+
+                float y = 0;
+
+                float z = 0;
+
+                position_component() : component(&position_component_type) { }
+
+            };
+
             enum ecs::components::position::status operator~(enum ecs::components::position::status value);
             enum ecs::components::position::status operator&(enum ecs::components::position::status lhs, enum ecs::components::position::status rhs);
             enum ecs::components::position::status operator|(enum ecs::components::position::status lhs, enum ecs::components::position::status rhs);
 
-            float get_x(const ecs::entity entity);
             size_t destroy(const ecs::entity entity);
             size_t create(const ecs::entity entity, struct ecs::component **storage);
 

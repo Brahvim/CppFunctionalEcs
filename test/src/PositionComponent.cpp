@@ -31,33 +31,15 @@ namespace ecs {
 			static struct ecs::components::position::position_component *s_position_components;
 			static struct ecs::components::position::position_component *s_free_position_components;
 
-			static struct component_type s_position_component_type = {
+			const struct ecs::component_type position_component_type = {
 				// .creation_function = ecs::components::position::create,
 				.destruction_function = ecs::components::position::destroy,
 			};
 #pragma endregion
 
-			struct position_component : public ecs::component {
-
-				float x = 0;
-
-				float y = 0;
-
-				float z = 0;
-
-				position_component() : component(&s_position_component_type) { }
-
-			};
-
 #pragma region // Methods!
-			float get_x(const ecs::entity p_entity) {
-				const auto *to_read = static_cast<struct ecs::components::position::position_component*>(
-					ecs::entity_get_component(p_entity, &s_position_component_type));
-				return to_read ? to_read->x : 0;
-			}
-
 			size_t destroy(const ecs::entity p_entity) {
-				delete ecs::entity_get_component(p_entity, &s_position_component_type);
+				delete ecs::entity_get_component(p_entity, &position_component_type);
 				return static_cast<size_t>(ecs::components::position::status::OK);
 			}
 
