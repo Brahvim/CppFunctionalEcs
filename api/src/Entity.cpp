@@ -36,7 +36,7 @@ namespace ecs {
         return s_count;
     }
 
-    size_t get_free_entity_count() {
+    size_t get_free_entities_count() {
         return s_free_count;
     }
 
@@ -45,10 +45,20 @@ namespace ecs {
     }
 
     bool is_valid(const ecs::entity p_entity) {
-        return p_entity < 1 || p_entity > s_count;
+        if (p_entity < 1 || p_entity > s_count)
+            return false;
+
+        for (size_t i = 0; i < s_free_count; ++i)
+            if (s_free_list[i] == p_entity)
+                return false;
+
+        return true;
     }
 
     enum ecs::entity_error create_entity(ecs::entity *p_storage) {
+        if (!p_storage)
+            return ecs::entity_error::INVALID_ENTITY;
+
         try {
             *p_storage = 0ULL;
         } catch (std::bad_alloc&) {
@@ -61,7 +71,7 @@ namespace ecs {
     // ...Whatever:
     enum ecs::entity_error destroy_entity(const ecs::entity p_entity) {
         if (ecs::is_valid(p_entity)) // Is the ID valid?
-            return ecs::entity_error::NULL_ENTITY;
+            return ecs::entity_error::INVALID_ENTITY;
 
         if (++s_free_count >= s_free_allocs_count) {
             s_free_allocs_count *= 2;
@@ -111,15 +121,25 @@ namespace ecs {
     }
 
     enum ecs::entity_error entity_detach_component(const ecs::entity p_entity, const struct ecs::component_type *p_type) {
-        if (!ecs::is_valid(p_entity)) {
+        if (ecs::is_valid(p_entity))
+            return ecs::entity_error::INVALID_ENTITY;
 
+        auto a = s_components_list[p_entity];
+        const size_t max = s_component_counts[p_entity];
+
+        for (size_t i = 0; i < max; i++) {
+            auto b = a;
+            if (b->type == p_type)
+                a = nullptr;
         }
+
+        return ecs::entity_error::NONE;
     }
 
     // Could this use a base type...? No `virtual`s though, please.
     enum ecs::entity_error entity_attach_component(const ecs::entity p_entity, const struct ecs::component *p_component) {
-        if (!(p_entity && p_component))
-            return ecs::entity_error::NULL_ENTITY & ecs::entity_error::NULL_COMPONENT;
+        if (!(ecs::is_valid(p_entity) && p_component))
+            return ecs::entity_error::INVALID_ENTITY & ecs::entity_error::INVALID_COMPONENT;
 
         // entity->components += p_component; // Add it there.
         return ecs::entity_error::NONE;

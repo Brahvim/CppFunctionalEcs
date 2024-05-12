@@ -8,17 +8,15 @@ namespace ecs {
 
     using entity = size_t;
 
-    enum class entity_error : size_t {
+    enum class entity_error : char {
 
         NONE = 0,
 
         MALLOC = 1,
 
-        NULL_ENTITY = 2,
+        INVALID_ENTITY = 2,
 
-        NULL_COMPONENT = 4,
-
-        INVALID_ENTITY = 8,
+        INVALID_COMPONENT = 4,
 
     };
 
@@ -27,9 +25,9 @@ namespace ecs {
     enum ecs::entity_error operator&(enum ecs::entity_error lhs, enum ecs::entity_error rhs);
     enum ecs::entity_error operator|(enum ecs::entity_error lhs, enum ecs::entity_error rhs);
 
-    // Numeric, statistical queries:
+    // Statistical queries:
     size_t get_entity_count();
-    size_t get_free_entity_count();
+    size_t get_free_entities_count();
     size_t get_entity_allocations_count();
 
     // Allocation queries:

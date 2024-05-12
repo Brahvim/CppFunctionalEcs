@@ -10,15 +10,15 @@ namespace ecs {
 
         namespace position {
 
-            enum class status : size_t {
+            enum class status : char {
 
                 NONE = 0,
 
                 MALLOC = 1,
 
-                NULL_ENTITY = 2,
+                INVALID_ENTITY = 2,
 
-                NULL_COMPONENT = 4,
+                INVALID_COMPONENT = 4,
 
             };
 
