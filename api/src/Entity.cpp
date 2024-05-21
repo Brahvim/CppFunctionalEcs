@@ -5,7 +5,7 @@
 
 namespace ecs {
 
-#pragma region // `ecs::entity_status` operators.
+#pragma region // `struct ecs::entity_status` operators.
     enum ecs::entity_error operator~(enum ecs::entity_error p_value) {
         return static_cast<enum ecs::entity_error>(~static_cast<size_t>(p_value));
     }
@@ -26,9 +26,10 @@ namespace ecs {
     static size_t s_free_allocs_count = 0;
 
     // If these fail, well, we're screwed! Crash guaranteed. ...Alright:
+    static size_t *s_free_list = static_cast<size_t*>(std::calloc(s_free_allocs_count, sizeof(size_t)));
     static size_t *s_component_counts = static_cast<size_t*>(std::calloc(s_allocs_count, sizeof(size_t)));
-    static ecs::entity *s_free_list = static_cast<ecs::entity*>(std::calloc(s_free_allocs_count, sizeof(ecs::entity)));
-    static struct ecs::component **s_components_list = static_cast<ecs::component**>(std::calloc(s_allocs_count, sizeof(struct ecs::component*)));
+    static struct ecs::component **s_components_list = static_cast<struct ecs::component**>(std::calloc(s_allocs_count, sizeof(struct ecs::component*)));
+    static struct ecs::component_type **s_component_types = static_cast<struct ecs::component_type**>(std::calloc(s_allocs_count, sizeof(struct ecs::component*)));
 #pragma endregion
 
 #pragma region // API implementation.
@@ -44,23 +45,23 @@ namespace ecs {
         return s_allocs_count;
     }
 
-    bool is_valid(const ecs::entity p_entity) {
-        if (p_entity < 1 || p_entity > s_count)
+    bool is_valid(const struct ecs::entity p_entity) {
+        if (p_entity.offset < 1 || p_entity.offset > s_count)
             return false;
 
         for (size_t i = 0; i < s_free_count; ++i)
-            if (s_free_list[i] == p_entity)
+            if (s_free_list[i] == p_entity.offset)
                 return false;
 
         return true;
     }
 
-    enum ecs::entity_error create_entity(ecs::entity *p_storage) {
+    enum ecs::entity_error create_entity(struct ecs::entity *p_storage) {
         if (!p_storage)
             return ecs::entity_error::INVALID_ENTITY;
 
         try {
-            *p_storage = 0ULL;
+            p_storage->offset = 0ULL;
         } catch (std::bad_alloc&) {
             return ecs::entity_error::MALLOC;
         }
@@ -69,20 +70,20 @@ namespace ecs {
     }
 
     // ...Whatever:
-    enum ecs::entity_error destroy_entity(const ecs::entity p_entity) {
+    enum ecs::entity_error destroy_entity(const struct ecs::entity p_entity) {
         if (ecs::is_valid(p_entity)) // Is the ID valid?
             return ecs::entity_error::INVALID_ENTITY;
 
         if (++s_free_count >= s_free_allocs_count) {
             s_free_allocs_count *= 2;
-            s_free_list = static_cast<ecs::entity*>(std::realloc(s_free_list, s_free_allocs_count * sizeof(ecs::entity)));
+            s_free_list = static_cast<size_t*>(std::realloc(s_free_list, s_free_allocs_count * sizeof(size_t)));
 
             if (!s_free_list)
                 std::exit(EXIT_FAILURE);
         }
 
-        s_components_list[p_entity] = nullptr;
-        s_component_counts[p_entity] = 0;
+        s_components_list[p_entity.offset] = nullptr;
+        s_component_counts[p_entity.offset] = 0;
         return ecs::entity_error::NONE;
     }
 
@@ -93,8 +94,8 @@ namespace ecs {
         if (++s_count >= s_allocs_count) {
             s_allocs_count *= 2;
 
-            auto new_component_counts = static_cast<ecs::entity*>(std::realloc(s_component_counts, p_count * sizeof(ecs::entity)));
-            auto new_components_list = static_cast<ecs::component**>(std::realloc(s_components_list, p_count * sizeof(ecs::component*)));
+            const auto new_component_counts = static_cast<size_t*>(std::realloc(s_component_counts, p_count * sizeof(size_t)));
+            const auto new_components_list = static_cast<ecs::component**>(std::realloc(s_components_list, p_count * sizeof(ecs::component*)));
 
             if (new_component_counts || new_components_list) {
                 s_component_counts = new_component_counts;
@@ -109,9 +110,9 @@ namespace ecs {
     }
 
     // If you get `nullptr`, you know it wasn't attached. No error code needed.
-    struct ecs::component* entity_get_component(const ecs::entity p_entity, const ecs::component_type *p_type) {
+    struct ecs::component* entity_get_component(const struct ecs::entity p_entity, const ecs::component_type *p_type) {
         struct ecs::component *component = nullptr;
-        const size_t max = s_component_counts[p_entity];
+        const size_t max = s_component_counts[p_entity.offset];
 
         for (size_t i = 0; i < max; ++i)
             if ((component = s_components_list[i])->type == p_type)
@@ -120,15 +121,15 @@ namespace ecs {
         return component;
     }
 
-    enum ecs::entity_error entity_detach_component(const ecs::entity p_entity, const struct ecs::component_type *p_type) {
+    enum ecs::entity_error entity_detach_component(const struct ecs::entity p_entity, const struct ecs::component_type *p_type) {
         if (ecs::is_valid(p_entity))
             return ecs::entity_error::INVALID_ENTITY;
 
-        auto a = s_components_list[p_entity];
-        const size_t max = s_component_counts[p_entity];
+        auto a = s_components_list[p_entity.offset];
+        const size_t max = s_component_counts[p_entity.offset];
 
         for (size_t i = 0; i < max; i++) {
-            auto b = a;
+            const auto b = a;
             if (b->type == p_type)
                 a = nullptr;
         }
@@ -137,7 +138,7 @@ namespace ecs {
     }
 
     // Could this use a base type...? No `virtual`s though, please.
-    enum ecs::entity_error entity_attach_component(const ecs::entity p_entity, const struct ecs::component *p_component) {
+    enum ecs::entity_error entity_attach_component(const struct ecs::entity p_entity, const struct ecs::component *p_component) {
         if (!(ecs::is_valid(p_entity) && p_component))
             return ecs::entity_error::INVALID_ENTITY & ecs::entity_error::INVALID_COMPONENT;
 

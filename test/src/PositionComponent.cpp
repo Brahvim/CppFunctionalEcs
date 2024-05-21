@@ -27,7 +27,7 @@ namespace ecs {
 			static size_t s_position_components_count;
 			static size_t s_free_position_components_count;
 
-			static ecs::entity *s_position_component_entities; // Same size as `s_position_components`. Used for mapping!
+			static struct ecs::entity *s_position_component_entities; // Same size as `s_position_components`. Used for mapping!
 			static struct ecs::components::position::position_component *s_position_components;
 			static struct ecs::components::position::position_component *s_free_position_components;
 
@@ -39,12 +39,12 @@ namespace ecs {
 #pragma endregion
 
 #pragma region // Methods!
-			size_t destroy(const ecs::entity p_entity) {
+			size_t destroy(struct ecs::entity p_entity) {
 				delete ecs::entity_get_component(p_entity, &position_component_type);
 				return static_cast<size_t>(ecs::components::position::status::NONE);
 			}
 
-			size_t create(const ecs::entity p_entity, struct ecs::component **p_storage) {
+			size_t create(struct ecs::entity p_entity, struct ecs::component **p_storage) {
 				// if (s_position_components_count < s_component_allocations)
 				//     struct ecs::components::position::position_component *to_attach = nullptr; // Allocate one!
 

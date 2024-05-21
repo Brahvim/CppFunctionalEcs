@@ -40,8 +40,8 @@ namespace ecs {
             enum ecs::components::position::status operator&(enum ecs::components::position::status lhs, enum ecs::components::position::status rhs);
             enum ecs::components::position::status operator|(enum ecs::components::position::status lhs, enum ecs::components::position::status rhs);
 
-            size_t destroy(const ecs::entity entity);
-            size_t create(const ecs::entity entity, struct ecs::component **storage);
+            size_t destroy(const struct ecs::entity entity);
+            size_t create(const struct ecs::entity entity, struct ecs::component **storage);
 
         }
 

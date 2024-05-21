@@ -4,7 +4,7 @@
 #include "PositionComponent.hpp"
 
 int main() {
-    ecs::entity e = 0;
+    struct ecs::entity e;
     ecs::create_entity(&e);
 
     ecs::component *position = nullptr;
