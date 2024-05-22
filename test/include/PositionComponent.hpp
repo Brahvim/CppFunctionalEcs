@@ -24,15 +24,13 @@ namespace ecs {
 
             extern const struct ecs::component_type position_component_type;
 
-            struct position_component : public ecs::component {
+            struct position_component {
 
                 float x = 0;
 
                 float y = 0;
 
                 float z = 0;
-
-                position_component() : component(&position_component_type) { }
 
             };
 

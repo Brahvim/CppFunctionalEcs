@@ -6,11 +6,10 @@ namespace ecs {
 
     struct component {
 
-        const struct ecs::component_type *type;
+        size_t offset;
+        struct component_type *type;
 
-        // I very much hope, I very much pray,
-        // May calls to this, be optimized away!
-        explicit component(const struct ecs::component_type *type);
+        explicit component(struct ecs::component_type *type);
 
     };
 

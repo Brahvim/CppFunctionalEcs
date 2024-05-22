@@ -1,7 +1,5 @@
 #pragma once
 
-#include <concepts>
-
 #include "Component.hpp"
 
 namespace ecs {

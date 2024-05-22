@@ -20,16 +20,22 @@ namespace ecs {
 #pragma endregion
 
 #pragma region // Entity data arrays.
+    // How many free and under-use entities?:
     static size_t s_count = 0;
     static size_t s_free_count = 0;
-    static size_t s_allocs_count = 8;
-    static size_t s_free_allocs_count = 0;
 
-    // If these fail, well, we're screwed! Crash guaranteed. ...Alright:
+    // Allocations for how many elements in each array?:
+    static size_t s_allocs_count = 8;
+    static size_t s_free_allocs_count = s_allocs_count;
+    static size_t s_component_types_length = s_allocs_count;
+    static size_t s_components_list_length = s_allocs_count;
+    static size_t s_component_counts_length = s_allocs_count;
+
+    // These are the arrays:
     static size_t *s_free_list = static_cast<size_t*>(std::calloc(s_free_allocs_count, sizeof(size_t)));
     static size_t *s_component_counts = static_cast<size_t*>(std::calloc(s_allocs_count, sizeof(size_t)));
-    static struct ecs::component **s_components_list = static_cast<struct ecs::component**>(std::calloc(s_allocs_count, sizeof(struct ecs::component*)));
-    static struct ecs::component_type **s_component_types = static_cast<struct ecs::component_type**>(std::calloc(s_allocs_count, sizeof(struct ecs::component*)));
+    static auto s_components_list = static_cast<struct ecs::component**>(std::calloc(s_allocs_count, sizeof(struct ecs::component*)));
+    static auto s_component_types = static_cast<struct ecs::component_type**>(std::calloc(s_allocs_count, sizeof(struct ecs::component_type*)));
 #pragma endregion
 
 #pragma region // API implementation.
@@ -88,25 +94,25 @@ namespace ecs {
     }
 
     enum ecs::entity_error ensure_allocations_for(const size_t p_count) {
-        if (s_allocs_count > p_count)
+        if (s_free_count >= p_count)
             return ecs::entity_error::NONE;
 
-        if (++s_count >= s_allocs_count) {
-            s_allocs_count *= 2;
+        const auto new_component_counts = static_cast<size_t*>(std::realloc(s_component_counts, p_count * sizeof(size_t)));
+        const auto new_components_list = static_cast<ecs::component**>(std::realloc(s_components_list, p_count * sizeof(ecs::component*)));
 
-            const auto new_component_counts = static_cast<size_t*>(std::realloc(s_component_counts, p_count * sizeof(size_t)));
-            const auto new_components_list = static_cast<ecs::component**>(std::realloc(s_components_list, p_count * sizeof(ecs::component*)));
+        auto to_ret = ecs::entity_error::NONE;
 
-            if (new_component_counts || new_components_list) {
-                s_component_counts = new_component_counts;
-                s_components_list = new_components_list;
-            } else {
-                s_allocs_count /= 2;
-                return ecs::entity_error::MALLOC;
-            }
-        }
+        if (new_component_counts) {
+            s_component_counts = new_component_counts;
+            s_component_counts_length *= 2;
+        } else to_ret = ecs::entity_error::MALLOC;
 
-        return ecs::entity_error::NONE;
+        if (new_components_list) {
+            s_components_list = new_components_list;
+            s_components_list_length *= 2;
+        } else to_ret = ecs::entity_error::MALLOC;
+
+        return to_ret;
     }
 
     // If you get `nullptr`, you know it wasn't attached. No error code needed.
@@ -115,8 +121,10 @@ namespace ecs {
         const size_t max = s_component_counts[p_entity.offset];
 
         for (size_t i = 0; i < max; ++i)
-            if ((component = s_components_list[i])->type == p_type)
+            if (s_component_types[i] == p_type) {
+                component = s_components_list[i];
                 break;
+            }
 
         return component;
     }
@@ -125,20 +133,20 @@ namespace ecs {
         if (ecs::is_valid(p_entity))
             return ecs::entity_error::INVALID_ENTITY;
 
-        auto a = s_components_list[p_entity.offset];
+        // auto a = s_components_list[p_entity.offset];
         const size_t max = s_component_counts[p_entity.offset];
 
         for (size_t i = 0; i < max; i++) {
-            const auto b = a;
-            if (b->type == p_type)
-                a = nullptr;
+            // const auto b = a;
+            // if (b.type == p_type)
+            //     a = nullptr;
         }
 
         return ecs::entity_error::NONE;
     }
 
     // Could this use a base type...? No `virtual`s though, please.
-    enum ecs::entity_error entity_attach_component(const struct ecs::entity p_entity, const struct ecs::component *p_component) {
+    enum ecs::entity_error entity_attach_component(const struct ecs::entity p_entity, const struct ecs::component * p_component) {
         if (!(ecs::is_valid(p_entity) && p_component))
             return ecs::entity_error::INVALID_ENTITY & ecs::entity_error::INVALID_COMPONENT;
 
