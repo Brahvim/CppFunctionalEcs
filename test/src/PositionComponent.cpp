@@ -40,7 +40,7 @@ namespace ecs {
 
 #pragma region // Methods!
 			size_t destroy(struct ecs::entity p_entity) {
-				delete ecs::entity_get_component(p_entity, &position_component_type);
+				// delete ecs::entity_get_components(p_entity, &position_component_type);
 				return static_cast<size_t>(ecs::components::position::status::NONE);
 			}
 
@@ -48,15 +48,17 @@ namespace ecs {
 				// if (s_position_components_count < s_component_allocations)
 				//     struct ecs::components::position::position_component *to_attach = nullptr; // Allocate one!
 
-				// NOLINTNEXTLINE
-				*p_storage = static_cast<struct component*>(std::malloc(sizeof(struct ecs::components::position::position_component)));
+				// Create a `struct ecs::components::position::position_component` instance in `s_position_components` and assign it:
+				// *p_storage = { std::malloc(sizeof(struct ecs::components::position::position_component)) };
+
+				// Store the entity handle, too!:
 				// s_position_component_entities[(to_attach - static_cast<struct component*>(s_position_components)) / sizeof(struct ecs::components::position::position_component)] = entity;
-				ecs::entity_attach_component(p_entity, *p_storage);
+				// Get it attached:
+				// ecs::entity_attach_component(p_entity, p_storage);
 
 				return static_cast<size_t>(ecs::components::position::status::NONE);
 			}
 #pragma endregion
-
 
 		}
 

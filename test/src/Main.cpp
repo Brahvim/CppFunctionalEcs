@@ -5,7 +5,7 @@
 
 int main() {
     struct ecs::entity e;
-    ecs::create_entity(&e);
+    ecs::entity_create(&e);
 
     ecs::component *position = nullptr;
     ecs::components::position::create(e, &position);

@@ -32,18 +32,19 @@ namespace ecs {
     enum ecs::entity_error operator|(enum ecs::entity_error lhs, enum ecs::entity_error rhs);
 
     // Statistical queries:
-    size_t get_entity_count();
-    size_t get_free_entities_count();
-    size_t get_entity_allocations_count();
+    size_t entity_get_entity_count();
+    size_t entity_get_allocations_count();
+    size_t entity_get_free_entities_count();
 
     // Allocation queries:
-    bool is_valid(const struct ecs::entity entity);
-    enum ecs::entity_error destroy_entity(const struct ecs::entity entity);
-    enum ecs::entity_error create_entity(struct ecs::entity *entity_storage);
-    enum ecs::entity_error ensure_allocations_for(const size_t entity_count);
+    bool entity_is_valid(const struct ecs::entity entity);
+    enum ecs::entity_error entity_destroy(const struct ecs::entity entity);
+    enum ecs::entity_error entity_create(struct ecs::entity *entity_storage);
+    enum ecs::entity_error entity_ensure_allocations_for(const size_t entity_count);
 
     // Getters and setters:
-    struct ecs::component* entity_get_component(const struct ecs::entity entity, const ecs::component_type *type);
+    size_t entity_get_component_type_count(const struct ecs::entity entity, const ecs::component_type *type);
+    struct ecs::component* entity_get_components(const struct ecs::entity entity, const ecs::component_type *type);
     enum ecs::entity_error entity_attach_component(const struct ecs::entity entity, const struct ecs::component *component);
     enum ecs::entity_error entity_detach_component(const struct ecs::entity entity, const struct ecs::component_type *component_type);
 
