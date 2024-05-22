@@ -56,7 +56,8 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "bitset": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "positioncomponent.h": "c"
     },
     "c-cpp-flylint.excludeFromWorkspacePaths": [
         "build",

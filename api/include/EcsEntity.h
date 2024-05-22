@@ -1,17 +1,20 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "EcsComponent.h"
 #include "EcsComponentType.h"
 
 enum entity_status {
 
-    ENTITY_STATUS_MALLOC,
+    ENTITY_STATUS_OKAY = 1,
 
-    ENTITY_STATUS_INVALID_ENTITY,
+    ENTITY_STATUS_MALLOC = 2,
 
-    ENTITY_STATUS_INVALID_COMPONENT,
+    ENTITY_STATUS_INVALID_ENTITY = 4,
+
+    ENTITY_STATUS_INVALID_COMPONENT = 8,
 
 };
 

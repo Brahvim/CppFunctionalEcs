@@ -8,7 +8,7 @@ typedef void(system_update_t)(struct ecs_component_array *components);
 
 struct ecs_system {
 
-    system_update_t update;
+    system_update_t *update;
     struct ecs_component_type *component_type;
 
 };
