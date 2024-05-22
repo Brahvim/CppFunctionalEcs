@@ -25,8 +25,9 @@ extern const struct ecs_component_type position_component_type;
 size_t position_component_count();
 struct ecs_entity* position_component_parents();
 
-ecs_component_status position_component_create(struct ecs_entity *entity, struct ecs_component *storage);
-ecs_component_status position_component_destroy(struct ecs_entity *entity, struct ecs_component component);
+struct position_component* position_component_get_data(struct ecs_component *component);
+ecs_component_status position_component_create(struct ecs_entity entity, struct ecs_component **storage);
+ecs_component_status position_component_destroy(struct ecs_entity entity, struct ecs_component *component);
 
 ecs_component_status position_component_add(struct ecs_component to, struct ecs_component from);
 ecs_component_status position_component_dist(struct ecs_component to, struct ecs_component from);
