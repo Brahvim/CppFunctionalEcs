@@ -18,10 +18,10 @@ int main() {
     puts("------------------------------------------------");
     puts("Table data:");
     puts("------------------------------------------------");
-    for (size_t i = 0; i < g_ecs->length; ++i) {
+    for (size_t i = 0; i < g_ecs->entry_count; ++i) {
         printf("| %zu | %zu | %p |\n",
             i,
-            g_ecs->table.ids[i].id,
+            g_ecs->table.ids_array[i].id,
             g_ecs->table.components);
     }
     puts("------------------------------------------------");

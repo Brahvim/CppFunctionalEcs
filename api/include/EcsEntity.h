@@ -9,15 +9,15 @@
 struct ecs_entities_table {
 
     size_t capacity;
-    struct ecs_entity *ids;
     size_t *component_counts;
+    struct ecs_entity *ids_array;
     struct ecs_component **components;
 
 };
 
 struct ecs_instance {
 
-    size_t length;
+    size_t entry_count;
     struct ecs_entities_table table;
 
 };
