@@ -75,8 +75,20 @@ enum ecs_status ecs_create(struct ecs_instance **p_instance) {
         return ECS_STATUS_COMPONENT_COUNT_MALLOC;
     } else to_ret->table.component_counts.capacity = ECS_INITIAL_ENTITY_CAPACITY;
 
-    to_ret->next_id = 1;
+    to_ret->next_id = 0;
     to_ret->entry_count = 0;
+
+    struct ecs_entity *null_entity;
+    null_entity = malloc(sizeof(struct ecs_entity));
+
+    if (!null_entity) {
+        // ecs_trim();
+
+        for (char i = 0; i < 100 || null_entity; ++i) // `100` tries or till the entity is no longer `null`.
+            null_entity = malloc(sizeof(struct ecs_entity));
+    }
+
+    ecs_create_entity(to_ret, &null_entity);
 
     *p_instance = to_ret;
     return ECS_STATUS_OKAY;
@@ -169,13 +181,15 @@ bool ecs_ensure_space(struct ecs_instance *p_instance, size_t p_entity_count) {
     return counts && entities && components;
 }
 
-enum ecs_status ecs_create_entity(struct ecs_instance* const p_instance, struct ecs_entity **p_entity) {
-    const size_t next_id = p_instance->entry_count + 1;
+enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity **const p_entity) {
+    const size_t next_id = p_instance->next_id;
 
     if (!ecs_ensure_space(p_instance, next_id))
         return ECS_STATUS_MALLOC;
 
-    ++(p_instance->entry_count); // We have reserved the space, other thread in crime!
+    // We have reserved our space, dear threads in crime!:
+    ++(p_instance->entry_count);
+    ++(p_instance->next_id);
 
     struct ecs_entity *const to_assign = malloc(sizeof(struct ecs_entity));
     enum ecs_status to_ret = ECS_STATUS_OKAY;
@@ -187,16 +201,32 @@ enum ecs_status ecs_create_entity(struct ecs_instance* const p_instance, struct 
     p_instance->table.components.darray[next_id] = malloc(sizeof(struct ecs_component**));
     p_instance->table.entities.array[next_id] = *to_assign;
     p_instance->table.component_counts.array[next_id] = 0;
+    to_assign->id = next_id;
 
     if (!p_instance->table.components.darray[next_id])
         to_ret = ECS_STATUS_COMPONENT_MALLOC;
 
     *p_entity = to_assign;
+
     return to_ret;
 }
 
-enum ecs_status ecs_destroy_entity(struct ecs_instance* const p_instance, struct ecs_entity *p_entity) {
+enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, const struct ecs_entity *const p_entity) {
+    size_t i = 0;
 
+    // TODO Replace with map when that happens, else a cache-aware search!:
+    for (; i < p_instance->entry_count; ++i)
+        if (p_instance->table.entities.array[i].id == p_entity->id)
+            break;
+
+    if (i == 0)
+        return ECS_STATUS_INVALID_ENTITY;
+
+    p_instance->table.components.darray[i] = p_instance->table.components.darray[p_instance->entry_count + 1];
+    p_instance->table.component_counts.array[i] = p_instance->table.component_counts.array[p_instance->entry_count + 1];
+    --(p_instance->entry_count);
+
+    return ECS_STATUS_OKAY;
 }
 
 const char* const ecs_status_to_string(enum ecs_status p_status) {

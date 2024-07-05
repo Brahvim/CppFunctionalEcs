@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "Ecs.h"
 #include "PositionComponent.h"
@@ -26,6 +27,26 @@ int main() {
     //         g_ecs->table.components.darray);
     // }
     // puts("------------------------------------------------");
+
+    struct ecs_entity *entities = calloc(sizeof(struct ecs_entity), 6);
+
+    if (!entities) {
+        perror("Couldn't allocate `entities`.");
+        exit(EXIT_FAILURE);
+    }
+
+    for (size_t i = 0; i < 6; i++) {
+        struct ecs_entity *e = &(entities[i]);
+        ecs_create_entity(g_ecs, &e);
+    }
+
+    for (size_t i = 0; i < 6; i++) {
+        struct ecs_entity e = entities[i];
+        printf("Entity ID `%zu` exists.\n", e.id);
+    }
+
+    for (size_t i = 0; i < 6; i++)
+        ecs_destroy_entity(g_ecs, &(entities[i]));
 
     LOG_ECS_CALL(ecs_destroy(g_ecs));
 }
