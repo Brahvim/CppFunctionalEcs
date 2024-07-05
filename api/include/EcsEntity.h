@@ -20,7 +20,7 @@ enum entity_status {
 
 struct ecs_entity {
 
-    size_t offset;
+    size_t id;
 
 };
 
@@ -36,6 +36,6 @@ enum entity_status entity_create(struct ecs_entity *storage);
 
 // Getters and setters:
 size_t entity_get_component_type_count(const struct ecs_entity entity, const struct ecs_component_type *type);
-struct ecs_component* entity_get_components(const struct ecs_entity entity, const struct ecs_component_type *type);
 enum entity_status entity_attach_component(const struct ecs_entity entity, const struct ecs_component *component);
+struct ecs_component* entity_get_components(const struct ecs_entity entity, const struct ecs_component_type *type);
 enum entity_status entity_detach_component(const struct ecs_entity entity, const struct ecs_component_type *component_type);

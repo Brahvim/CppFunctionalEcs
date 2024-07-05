@@ -8,6 +8,7 @@ struct ecs_component;
 typedef int ecs_component_status;
 
 typedef void* (ecs_component_data_getter_t) (struct ecs_component *component);
+typedef struct ecs_entity(ecs_component_entity_getter_t)(struct ecs_component *component);
 typedef ecs_component_status(ecs_component_destructor_t)(struct ecs_entity entity, struct ecs_component *component);
 typedef ecs_component_status(ecs_component_constructor_t)(struct ecs_entity entity, struct ecs_component **storage);
 
@@ -17,5 +18,6 @@ struct ecs_component_type {
     ecs_component_data_getter_t *getter;
     ecs_component_destructor_t *destructor;
     ecs_component_constructor_t *constructor;
+    ecs_component_entity_getter_t *entity_getter;
 
 };

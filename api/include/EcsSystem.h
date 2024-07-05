@@ -2,13 +2,17 @@
 
 #include <stddef.h>
 
+struct ecs_system;
+struct ecs_systems_round;
+struct ecs_component_type;
 struct ecs_component_array;
+struct ecs_systems_pipeline;
 
-typedef void(system_update_t)(struct ecs_component_array *components);
+typedef void(ecs_system_update_t)(struct ecs_component_array *components);
 
 struct ecs_system {
 
-    system_update_t *update;
+    ecs_system_update_t *update;
     struct ecs_component_type *component_type;
 
 };

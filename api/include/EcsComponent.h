@@ -6,7 +6,7 @@
 
 struct ecs_component {
 
-    size_t offset;
+    size_t id;
     struct ecs_component_type *type;
 
 };
