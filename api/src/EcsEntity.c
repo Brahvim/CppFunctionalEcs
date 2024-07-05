@@ -4,11 +4,9 @@
 #include "Ecs.h"
 
 #pragma region // API Implementation.
-
 size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_size) {
     return (p_element_size != 0 && p_count > __SIZE_MAX__ / p_element_size) ? p_count * p_element_size : 0;
 }
-#pragma endregion
 
 enum ecs_status ecs_create(struct ecs_instance **p_instance) {
     struct ecs_instance *to_ret = malloc(sizeof(struct ecs_instance));
@@ -59,4 +57,4 @@ const char* const ecs_status_to_string(enum ecs_status p_status) {
         case ECS_STATUS_COMPONENTS_MALLOC: return "Memory allocation failure for components arrays";
     }
 }
-
+#pragma endregion
