@@ -15,6 +15,7 @@ struct ecs_component_array {
 
     size_t num_components;
     struct ecs_component *components;
+    struct ecs_entity *parent_enitities;
     struct ecs_component_type *component_type;
 
 };

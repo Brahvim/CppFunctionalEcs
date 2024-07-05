@@ -23,7 +23,7 @@ enum position_component_status {
 extern const struct ecs_component_type position_component_type;
 
 size_t position_component_count();
-struct ecs_entity* position_component_parents();
+// struct ecs_entity* position_component_parents();
 
 struct position_component* position_component_get_data(struct ecs_component *component);
 ecs_component_status position_component_create(struct ecs_entity entity, struct ecs_component **storage);

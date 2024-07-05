@@ -3,7 +3,7 @@
 
 const struct ecs_component_type position_component_type = {
 
-    .instance_limit = __SIZE_MAX__,
+    .instances_per_entity = __SIZE_MAX__,
     .destructor = position_component_destroy,
     .constructor = position_component_create,
 

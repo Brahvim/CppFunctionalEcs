@@ -6,15 +6,18 @@
 #include "EcsComponent.h"
 #include "EcsComponentType.h"
 
-enum entity_status {
+struct ecs_entities_table {
 
-    ENTITY_STATUS_OKAY = 1,
+    size_t capacity;
+    struct ecs_entity *ids;
+    struct ecs_component **components;
 
-    ENTITY_STATUS_MALLOC = 2,
+};
 
-    ENTITY_STATUS_INVALID_ENTITY = 4,
+struct ecs_instance {
 
-    ENTITY_STATUS_INVALID_COMPONENT = 8,
+    size_t length;
+    struct ecs_entities_table table;
 
 };
 
@@ -24,18 +27,25 @@ struct ecs_entity {
 
 };
 
-size_t entity_get_count();
-// size_t entity_get_allocations_count();
-// No `size_t entity_get_free_count()` here; free lists should remain an implementation detail.
+enum ecs_status {
 
-bool entity_is_valid();
-enum entity_status entity_ensure_allocations_for(size_t count);
+    ECS_STATUS_OKAY = 1,
 
-enum entity_status entity_destroy(struct ecs_entity entity);
-enum entity_status entity_create(struct ecs_entity *storage);
+    ECS_STATUS_MALLOC = 2,
 
-// Getters and setters:
-size_t entity_get_component_type_count(const struct ecs_entity entity, const struct ecs_component_type *type);
-enum entity_status entity_attach_component(const struct ecs_entity entity, const struct ecs_component *component);
-struct ecs_component* entity_get_components(const struct ecs_entity entity, const struct ecs_component_type *type);
-enum entity_status entity_detach_component(const struct ecs_entity entity, const struct ecs_component_type *component_type);
+    ECS_STATUS_ID_MALLOC = 4,
+
+    ECS_STATUS_INVALID_ENTITY = 8,
+
+    ECS_STATUS_INVALID_INSTANCE = 16,
+
+    ECS_STATUS_COMPONENTS_MALLOC = 32,
+
+    ECS_STATUS_INVALID_COMPONENT = 64,
+
+};
+
+enum ecs_status ecs_create(struct ecs_instance** instance);
+enum ecs_status ecs_destroy(struct ecs_instance* instance);
+
+const char* const ecs_status_to_string(enum ecs_status status);

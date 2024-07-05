@@ -1,19 +1,14 @@
+#include <stdio.h>
+
 #include "Ecs.h"
 #include "PositionComponent.h"
 
+struct ecs_instance *g_ecs;
+
+#define LOG_ECS_CALL(call) \
+printf("ECS `" #call "` call status [" __FILE__ ": %d ]: %s.\n", __LINE__, ecs_status_to_string(call))
+
 int main() {
-    ecs_init();
-
-    // struct ecs_entity e;
-    // const enum entity_status e_init_err = entity_create(&e);
-
-    // struct ecs_component *c;
-    // const enum entity_status c_init_err = position_component_create(e, &c);
-
-    // // `((struct position_component*) c->type->getter(c))->x = 4;`
-    // struct position_component *const data = position_component_get_data(c);
-    // data->x = 4;
-    // data->y = 5;
-    // data->z = 6;
-
+    LOG_ECS_CALL(ecs_create(&g_ecs));
+    LOG_ECS_CALL(ecs_destroy(g_ecs));
 }
