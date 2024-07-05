@@ -10,6 +10,7 @@ struct ecs_entities_table {
 
     size_t capacity;
     struct ecs_entity *ids;
+    size_t *component_counts;
     struct ecs_component **components;
 
 };
@@ -42,6 +43,8 @@ enum ecs_status {
     ECS_STATUS_COMPONENTS_MALLOC = 32,
 
     ECS_STATUS_INVALID_COMPONENT = 64,
+
+    ECS_STATUS_COMPONENT_COUNTS_MALLOC = 128,
 
 };
 

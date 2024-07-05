@@ -20,9 +20,11 @@ enum ecs_status ecs_create(struct ecs_instance **p_instance) {
     to_ret->length = ECS_INITIAL_ENTITY_CAPACITY;
     to_ret->table.capacity = ECS_INITIAL_ENTITY_CAPACITY;
     to_ret->table.ids = calloc(ECS_INITIAL_ENTITY_CAPACITY, sizeof(struct ecs_entity));
+    to_ret->table.component_counts = calloc(ECS_INITIAL_ENTITY_CAPACITY, sizeof(size_t));
     to_ret->table.components = calloc(ECS_INITIAL_ENTITY_CAPACITY, sizeof(struct ecs_component*));
 
-    // Checks:
+    // Checks (in the given order because checks on data "seated deeper" *might* be optimized by cache.
+    // Of course that's not necessary at all here - just felt like telling what I noticed):
     if (!to_ret->table.ids) {
         *p_instance = to_ret;
         return ECS_STATUS_ID_MALLOC;
@@ -31,6 +33,11 @@ enum ecs_status ecs_create(struct ecs_instance **p_instance) {
     if (!to_ret->table.components) {
         *p_instance = to_ret;
         return ECS_STATUS_COMPONENTS_MALLOC;
+    }
+
+    if (!to_ret->table.component_counts) {
+        *p_instance = to_ret;
+        return ECS_STATUS_COMPONENT_COUNTS_MALLOC;
     }
 
     *p_instance = to_ret;
@@ -55,6 +62,7 @@ const char* const ecs_status_to_string(enum ecs_status p_status) {
         case ECS_STATUS_INVALID_COMPONENT: return "Invalid `struct ecs_component`";
         case ECS_STATUS_ID_MALLOC: return "Memory allocation failure for IDs array";
         case ECS_STATUS_COMPONENTS_MALLOC: return "Memory allocation failure for components arrays";
+        case ECS_STATUS_COMPONENT_COUNTS_MALLOC: return "Memory allocation failure for component counts array";
     }
 }
 #pragma endregion
