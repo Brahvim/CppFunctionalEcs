@@ -6,21 +6,8 @@
 #include "EcsComponent.h"
 #include "EcsComponentType.h"
 
-struct ecs_entities_table {
-
-    size_t capacity;
-    size_t *component_counts;
-    struct ecs_entity *ids_array;
-    struct ecs_component **components;
-
-};
-
-struct ecs_instance {
-
-    size_t entry_count;
-    struct ecs_entities_table table;
-
-};
+// ...Still keeping the SoA structure:
+struct ecs_instance;
 
 struct ecs_entity {
 
@@ -34,21 +21,30 @@ enum ecs_status {
 
     ECS_STATUS_MALLOC = 2,
 
-    ECS_STATUS_ID_MALLOC = 4,
+    ECS_STATUS_ENTITY_MALLOC = 4,
 
     ECS_STATUS_INVALID_ENTITY = 8,
 
     ECS_STATUS_INVALID_INSTANCE = 16,
 
-    ECS_STATUS_COMPONENTS_MALLOC = 32,
+    ECS_STATUS_COMPONENT_MALLOC = 32,
 
     ECS_STATUS_INVALID_COMPONENT = 64,
 
-    ECS_STATUS_COMPONENT_COUNTS_MALLOC = 128,
+    ECS_STATUS_COMPONENT_COUNT_MALLOC = 128,
 
 };
 
-enum ecs_status ecs_create(struct ecs_instance** instance);
-enum ecs_status ecs_destroy(struct ecs_instance* instance);
+// Context creation/destruction:
+enum ecs_status ecs_create(struct ecs_instance **instance);
+enum ecs_status ecs_destroy(struct ecs_instance *instance);
 
+// Utilities:
+void ecs_trim(struct ecs_instance *instance);
 const char* const ecs_status_to_string(enum ecs_status status);
+bool ecs_ensure_space(struct ecs_instance *instance, size_t entity_count);
+
+// Entity creation/destruction:
+enum ecs_status ecs_create_entity(struct ecs_instance *const instance, struct ecs_entity **entity);
+enum ecs_status ecs_destroy_entity(struct ecs_instance *const instance, struct ecs_entity *entity);
+

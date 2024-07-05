@@ -58,7 +58,8 @@
         "bitset": "cpp",
         "optional": "cpp",
         "positioncomponent.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "stddef.h": "c"
     },
     "c-cpp-flylint.excludeFromWorkspacePaths": [
         "build",
