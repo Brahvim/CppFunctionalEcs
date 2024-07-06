@@ -46,6 +46,23 @@ size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_
     return (p_element_size != 0 && p_count > __SIZE_MAX__ / p_element_size) ? p_count * p_element_size : 0;
 }
 
+void ecs_print_table(struct ecs_instance *p_instance) {
+    // I have done the table-spaces-sorting thing before, but I'm not doing it this time...
+    puts("ECS entities table (format):");
+    puts("------------------------------------------------");
+    puts("| Index | Entity ID | Components Array Address |");
+    puts("------------------------------------------------");
+    puts("Table data:");
+    puts("------------------------------------------------");
+    for (size_t i = 0; i < p_instance->entry_count; ++i) {
+        printf("| %zu | %zu | %p |\n",
+            i,
+            p_instance->table.entities.array[i].id,
+            p_instance->table.components.darray);
+    }
+    puts("------------------------------------------------");
+}
+
 // If you have to write more allocations here, MAKE SURE TO FREE THEM!:
 enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
     struct ecs_instance *to_ret = malloc(sizeof(struct ecs_instance));
@@ -54,9 +71,12 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
         return ECS_STATUS_MALLOC;
 
     // Initialization:
+
+    // NOLINTBEGIN(clang-analyzer-optin.portability.UnixAPI)
     to_ret->table.component_counts.array = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(size_t)));
     to_ret->table.entities.array = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(struct ecs_entity)));
     to_ret->table.components.darray = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(struct ecs_component*)));
+    // NOLINTEND(clang-analyzer-optin.portability.UnixAPI)
 
     // Checks (in the given order because checks on data "seated deeper" *might* be optimized by cache.
     // Of course that's not necessary at all here - just felt like telling what I noticed):
@@ -184,24 +204,28 @@ bool ecs_ensure_space(struct ecs_instance *p_instance, size_t p_entity_count) {
 }
 
 enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity **p_entity) {
+    ecs_print_table(p_instance);
+
     if (!ecs_ensure_space(p_instance, p_instance->next_id))
         return ECS_STATUS_MALLOC;
 
+    const size_t next_id = p_instance->next_id;
+
     // We have reserved our space, dear threads in crime!:
-    ++(p_instance->entry_count);
     ++(p_instance->next_id);
+    ++(p_instance->entry_count);
 
     enum ecs_status to_ret = ECS_STATUS_OKAY;
-    const size_t next_id = p_instance->next_id; // MAKE NO CHANGES TO `p_instance::next_id` NOW!
-    struct ecs_entity *to_assign = &(p_instance->table.entities.array[next_id]);
+    struct ecs_entity *to_assign = &(p_instance->table.entities.array[p_instance->next_id]);
 
     if (!to_assign)
         return ECS_STATUS_ENTITY_MALLOC;
 
     to_assign->id = next_id;
     p_instance->table.component_counts.array[next_id] = 0;
-    // p_instance->table.entities.array[next_id] = (struct ecs_entity) { .id = next_id };
     p_instance->table.components.darray[next_id] = malloc(sizeof(struct ecs_component));
+    // ^^^ Memory for a single component. This ensures that the components array exists for this entity.
+    // Should be refactored into an API call.
 
     if (!p_instance->table.components.darray[next_id])
         to_ret = ECS_STATUS_COMPONENT_MALLOC;
@@ -210,7 +234,10 @@ enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct 
     return to_ret;
 }
 
-enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, const struct ecs_entity *const p_entity) {
+enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, struct ecs_entity *p_entity) {
+    if (p_entity->id == 0)
+        return ECS_STATUS_INVALID_ENTITY;
+
     size_t i = 0;
 
     // TODO Replace with map when that happens, else a cache-aware search!:
@@ -218,12 +245,14 @@ enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, const 
         if (p_instance->table.entities.array[i].id == p_entity->id)
             break;
 
-    if (i == 0)
+    // Remember - `entry_count` is itself out-of-bounds. It is the upper limit:
+    if (i == p_instance->entry_count)
         return ECS_STATUS_INVALID_ENTITY;
 
-    p_instance->table.components.darray[i] = p_instance->table.components.darray[p_instance->entry_count + 1];
-    p_instance->table.component_counts.array[i] = p_instance->table.component_counts.array[p_instance->entry_count + 1];
+    p_instance->table.component_counts.array[i] = p_instance->table.component_counts.array[p_instance->entry_count - 1];
+    p_instance->table.components.darray[i] = p_instance->table.components.darray[p_instance->entry_count - 1];
     --(p_instance->entry_count);
+    p_entity->id = 0;
 
     return ECS_STATUS_OKAY;
 }
