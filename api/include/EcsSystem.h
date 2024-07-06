@@ -5,10 +5,10 @@
 struct ecs_system;
 struct ecs_systems_round;
 struct ecs_component_type;
-struct ecs_component_array;
+struct ecs_components_table;
 struct ecs_systems_pipeline;
 
-typedef void(ecs_system_update_t)(struct ecs_component_array *components);
+typedef void(ecs_system_update_t)(struct ecs_components_table *components);
 
 struct ecs_system {
 
@@ -32,7 +32,7 @@ struct ecs_systems_pipeline {
 };
 
 // Assuming both `struct`'s `num_*` values are equal, this runs a round of `ecs_system::update`s in parallel:
-void run_round(struct ecs_systems_round *round, struct ecs_component_array *component_arrays);
+void run_round(struct ecs_systems_round *round, struct ecs_components_table *component_arrays);
 
 // Runs `ecs_systems_pipeline::rounds::update`s in serial order, given all component data:
-void run_pipeline(struct ecs_systems_pipeline *pipeline, struct ecs_component_array **components);
+void run_pipeline(struct ecs_systems_pipeline *pipeline, struct ecs_components_table **components);

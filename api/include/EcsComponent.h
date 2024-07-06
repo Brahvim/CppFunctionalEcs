@@ -11,7 +11,7 @@ struct ecs_component {
 
 };
 
-struct ecs_component_array {
+struct ecs_components_table {
 
     size_t num_components;
     struct ecs_component *components;

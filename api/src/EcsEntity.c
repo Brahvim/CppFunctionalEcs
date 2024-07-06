@@ -5,6 +5,42 @@
 #include "Ecs.h"
 
 #pragma region // API Implementation.
+
+/*
+## Entities Table Layout
+    / ------------------------------------------------------------------ \
+    |  IDs  | Component Arrays | Component Counts | Component Capacities |
+    | ------------------------------------------------------------------ |
+[0] |   0   | [..............] |        0         |           4          |
+[1] |   6   | [..#...........] |        1         |           3          |
+[2] |   2   | [..#..#........] |        2         |           2          |
+[3] |   3   | [..#..#..#.....] |        3         |           1          |
+[4] |   9   | [..#..#..#..#..] |        4         |           0          |
+    \ ------------------------------------------------------------------ /
+
+- Each column - each heading - each top-down region of the table, represents an array.
+
+- The vertically-placed square brackets on the left show array indices.
+  They show that each row of the table - each left-right region, represents an entry in each of these arrays, and thus, an entry in the table.
+
+- Components are stored in a "sparse" manner.
+  Only the ID, and some *type information* (see the use of `struct ecs_component_type` in `struct ecs_component`) is stored by the elements
+  of the "Component Arrays" (`struct ecs_components_darray`).
+
+- Each column's corresponding *actual array* is stored as a `struct` so its length may be tracked:
+
+/ -------------------------------------------------------------- \
+| Column Name             : Code Representation                  |
+| -------------------------------------------------------------- |
+| IDs                     : `struct ecs_entities_array`,         |
+| Component Arrays        : `struct ecs_components_darray`,      |
+| Component Counts        : `struct ecs_component_counts_array`, |
+| Component Capacities    : `struct ecs_caps_array`.             |
+\ -------------------------------------------------------------- /
+
+- Each `struct` stores the "actual array `struct`s" as direct members and not pointers to disallow further re-direction.
+*/
+
 struct ecs_component_counts_array {
 
     size_t capacity;
@@ -12,7 +48,14 @@ struct ecs_component_counts_array {
 
 };
 
-struct ecs_components_array {
+struct ecs_component_caps_array {
+
+    size_t capacity;
+    size_t *array;
+
+};
+
+struct ecs_components_darray {
 
     size_t capacity;
     struct ecs_component **darray;
@@ -29,7 +72,7 @@ struct ecs_entities_array {
 struct ecs_entities_table {
 
     struct ecs_entities_array entities;
-    struct ecs_components_array components;
+    struct ecs_components_darray components;
     struct ecs_component_counts_array counts;
 
 };
@@ -75,9 +118,9 @@ const char* const ecs_status_to_string(enum ecs_status p_status) {
         case ECS_STATUS_INVALID_ENTITY:             return "Invalid `struct ecs_entity`";
         case ECS_STATUS_INVALID_INSTANCE:           return "Invalid `struct ecs_instance`";
         case ECS_STATUS_INVALID_COMPONENT:          return "Invalid `struct ecs_component`";
-        case ECS_STATUS_ENTITY_MALLOC:                  return "Memory allocation failure for IDs array";
-        case ECS_STATUS_COMPONENT_MALLOC:          return "Memory allocation failure for components arrays";
-        case ECS_STATUS_COMPONENT_COUNT_MALLOC:    return "Memory allocation failure for component counts array";
+        case ECS_STATUS_ENTITY_MALLOC:              return "Memory allocation failure for IDs array";
+        case ECS_STATUS_COMPONENT_MALLOC:           return "Memory allocation failure for components arrays";
+        case ECS_STATUS_COMPONENT_COUNT_MALLOC:     return "Memory allocation failure for component counts array";
     }
 }
 
@@ -183,7 +226,7 @@ enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
     return ECS_STATUS_OKAY;
 }
 
-bool ecs_ensure_space(struct ecs_instance *p_instance, size_t p_entity_count) {
+bool ecs_ensure_space(struct ecs_instance *const p_instance, size_t p_entity_count) {
     if (p_instance->table.counts.capacity >= p_entity_count
         && p_instance->table.components.capacity >= p_entity_count
         && p_instance->table.entities.capacity >= p_entity_count)
