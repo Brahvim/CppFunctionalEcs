@@ -11,7 +11,7 @@ printf("`" #call "` (line `%d`): %s.\n", __LINE__, ecs_status_to_string(call))
 // printf("ECS `" #call "` call status [" __FILE__ ": %d ]: %s.\n", __LINE__, ecs_status_to_string(call))
 
 int main() {
-    LOG_ECS_CALL(ecs_create(&g_ecs));
+    LOG_ECS_CALL(ecs_create_instance(&g_ecs));
 
     // I have done the table-spaces-sorting thing before, but I'm not doing it this time...
     // puts("ECS entities table (format):");
@@ -48,5 +48,5 @@ int main() {
     for (size_t i = 0; i < 6; i++)
         ecs_destroy_entity(g_ecs, &(entities[i]));
 
-    LOG_ECS_CALL(ecs_destroy(g_ecs));
+    LOG_ECS_CALL(ecs_destroy_instance(g_ecs));
 }

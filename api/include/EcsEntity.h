@@ -38,11 +38,11 @@ enum ecs_status {
 // TODO: Object creation convenience macros!
 
 // Context creation/destruction:
-enum ecs_status ecs_create(struct ecs_instance **instance);
-enum ecs_status ecs_destroy(struct ecs_instance *instance);
+enum ecs_status ecs_create_instance(struct ecs_instance **instance);
+enum ecs_status ecs_destroy_instance(struct ecs_instance *instance);
 
 // Utilities:
-void ecs_trim(struct ecs_instance *instance);
+size_t ecs_trim(struct ecs_instance *instance);
 const char* const ecs_status_to_string(enum ecs_status status);
 bool ecs_ensure_space(struct ecs_instance *instance, size_t entity_count);
 

@@ -1,5 +1,6 @@
-#include <memory.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 
 #include "Ecs.h"
 
@@ -46,7 +47,7 @@ size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_
 }
 
 // If you have to write more allocations here, MAKE SURE TO FREE THEM!:
-enum ecs_status ecs_create(struct ecs_instance **p_instance) {
+enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
     struct ecs_instance *to_ret = malloc(sizeof(struct ecs_instance));
 
     if (!to_ret)
@@ -86,6 +87,7 @@ enum ecs_status ecs_create(struct ecs_instance **p_instance) {
 
         for (char i = 0; i < 100 || null_entity; ++i) // `100` tries or till the entity is no longer `null`.
             null_entity = malloc(sizeof(struct ecs_entity));
+        // ...Could totally use a threading API to ensure this didn't up CPU usage too much.
     }
 
     ecs_create_entity(to_ret, &null_entity);
@@ -98,7 +100,7 @@ enum ecs_status ecs_create(struct ecs_instance **p_instance) {
 // If you're here to edit this one, good luck.
 // Remember to take your time. You **need** to give this guy a lot of time.
 // *Don't run away!*
-enum ecs_status ecs_destroy(struct ecs_instance *p_instance) {
+enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
     if (!p_instance)
         return ECS_STATUS_INVALID_INSTANCE;
 
@@ -181,33 +183,30 @@ bool ecs_ensure_space(struct ecs_instance *p_instance, size_t p_entity_count) {
     return counts && entities && components;
 }
 
-enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity **const p_entity) {
-    const size_t next_id = p_instance->next_id;
-
-    if (!ecs_ensure_space(p_instance, next_id))
+enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity **p_entity) {
+    if (!ecs_ensure_space(p_instance, p_instance->next_id))
         return ECS_STATUS_MALLOC;
 
     // We have reserved our space, dear threads in crime!:
     ++(p_instance->entry_count);
     ++(p_instance->next_id);
 
-    struct ecs_entity *const to_assign = malloc(sizeof(struct ecs_entity));
     enum ecs_status to_ret = ECS_STATUS_OKAY;
+    const size_t next_id = p_instance->next_id; // MAKE NO CHANGES TO `p_instance::next_id` NOW!
+    struct ecs_entity *to_assign = &(p_instance->table.entities.array[next_id]);
 
     if (!to_assign)
         return ECS_STATUS_ENTITY_MALLOC;
 
-    // p_instance->table.entities.array[next_id] = (struct ecs_entity) { .id = next_id };
-    p_instance->table.components.darray[next_id] = malloc(sizeof(struct ecs_component**));
-    p_instance->table.entities.array[next_id] = *to_assign;
-    p_instance->table.component_counts.array[next_id] = 0;
     to_assign->id = next_id;
+    p_instance->table.component_counts.array[next_id] = 0;
+    // p_instance->table.entities.array[next_id] = (struct ecs_entity) { .id = next_id };
+    p_instance->table.components.darray[next_id] = malloc(sizeof(struct ecs_component));
 
     if (!p_instance->table.components.darray[next_id])
         to_ret = ECS_STATUS_COMPONENT_MALLOC;
 
     *p_entity = to_assign;
-
     return to_ret;
 }
 
