@@ -5,7 +5,6 @@
 #include "Ecs.h"
 
 #pragma region // API Implementation.
-
 /*
 ## Entities Table Layout
     / ------------------------------------------------------------------ \
@@ -38,9 +37,10 @@
 | Component Capacities    : `struct ecs_caps_array`.             |
 \ -------------------------------------------------------------- /
 
-- Each `struct` stores the "actual array `struct`s" as direct members and not pointers to disallow further re-direction.
+- Each table's `struct` stores the "actual array `struct`s" as **direct members** and not pointers - this disallows further re-direction.
 */
 
+#pragma region // `struct`s.
 struct ecs_component_counts_array {
 
     size_t capacity;
@@ -72,6 +72,7 @@ struct ecs_entities_array {
 struct ecs_entities_table {
 
     struct ecs_entities_array entities;
+    struct ecs_component_caps_array caps;
     struct ecs_components_darray components;
     struct ecs_component_counts_array counts;
 
@@ -82,8 +83,10 @@ struct ecs_instance {
     size_t next_id;
     size_t entry_count;
     struct ecs_entities_table table;
+    struct ecs_entity *const null_entity;
 
 };
+#pragma endregion
 
 size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_size) {
     const size_t to_ret =
@@ -159,9 +162,7 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
 
     to_ret->next_id = 0;
     to_ret->entry_count = 0;
-
-    struct ecs_entity *null_entity;
-    ecs_create_entity(to_ret, &null_entity);
+    ecs_create_entity(to_ret, NULL);
 
     *p_instance = to_ret;
     return ECS_STATUS_OKAY;
@@ -232,29 +233,33 @@ bool ecs_ensure_space(struct ecs_instance *const p_instance, size_t p_entity_cou
         && p_instance->table.entities.capacity >= p_entity_count)
         return true;
 
-    size_t *counts = realloc(p_instance->table.counts.array, p_entity_count * sizeof(size_t));
-    struct ecs_entity *entities = realloc(p_instance->table.entities.array, p_entity_count * sizeof(struct ecs_entity));
-    struct ecs_component **components = realloc(p_instance->table.components.darray, p_entity_count * sizeof(struct ecs_component*));
+    size_t *counts = p_instance->table.counts.array;
+    struct ecs_entity *entities = p_instance->table.entities.array;
+    struct ecs_component **components = p_instance->table.components.darray;
+
+    counts = realloc(counts, p_instance->table.counts.capacity * 2 * sizeof(size_t));
+    entities = realloc(entities, p_instance->table.entities.capacity * 2 * sizeof(struct ecs_entity));
+    components = realloc(components, p_instance->table.components.capacity * 2 * sizeof(struct ecs_component*));
 
     if (counts) {
+        p_instance->table.counts.capacity *= 2;
         p_instance->table.counts.array = counts;
-        p_instance->table.counts.capacity = p_entity_count;
     }
 
     if (entities) {
+        p_instance->table.entities.capacity *= 2;
         p_instance->table.entities.array = entities;
-        p_instance->table.entities.capacity = p_entity_count;
     }
 
     if (components) {
+        p_instance->table.components.capacity *= 2;
         p_instance->table.components.darray = components;
-        p_instance->table.components.capacity = p_entity_count;
     }
 
     return counts && entities && components;
 }
 
-enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity **p_entity) {
+enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity *p_entity) {
     ecs_print_table(p_instance);
 
     if (!ecs_ensure_space(p_instance, p_instance->next_id))
@@ -262,17 +267,19 @@ enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct 
 
     const size_t id = p_instance->next_id;
 
-    struct ecs_entity *to_assign = &(p_instance->table.entities.array[p_instance->next_id]);
+    p_instance->table.entities.array[p_instance->next_id].id = id;
     p_instance->table.components.darray[id] = NULL;
     p_instance->table.counts.array[id] = 0;
-    to_assign->id = id;
+
+    const struct ecs_entity *const null_entity = &(p_instance->table.entities.array[0]);
+    if (p_entity && p_entity != null_entity)
+        p_entity->id = id;
 
     // We have reserved our space, dear threads in crime!:
     ++(p_instance->next_id);
     ++(p_instance->entry_count);
     // (Yeah, I know I'm telling them about it late...)
 
-    *p_entity = to_assign;
     return ECS_STATUS_OKAY;
 }
 

@@ -11,11 +11,26 @@ struct ecs_component {
 
 };
 
+struct ecs_parents_array {
+
+    size_t capacity;
+    struct ecs_entity *array;
+
+};
+
+struct ecs_component_array {
+
+    size_t capacity;
+    struct ecs_component *array;
+
+};
+
+// Component programmers would keep a `static struct my_component_data s_component_data` variable around.
+
 struct ecs_components_table {
 
-    size_t num_components;
-    struct ecs_component *components;
-    struct ecs_entity *parent_enitities;
-    struct ecs_component_type *component_type;
+    size_t entry_count;
+    struct ecs_parents_array parents;
+    struct ecs_component_array handles;
 
 };

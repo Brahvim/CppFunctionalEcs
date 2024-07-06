@@ -47,5 +47,8 @@ const char* const ecs_status_to_string(enum ecs_status status);
 bool ecs_ensure_space(struct ecs_instance *const instance, size_t entity_count);
 
 // Entity creation/destruction:
-enum ecs_status ecs_create_entity(struct ecs_instance *const instance, struct ecs_entity **entity);
+enum ecs_status ecs_create_entity(struct ecs_instance *const instance, struct ecs_entity *entity);
 enum ecs_status ecs_destroy_entity(struct ecs_instance *const instance, struct ecs_entity *entity);
+
+enum ecs_status ecs_entity_attach_component(struct ecs_instance *const instance, struct ecs_entity entity);
+enum ecs_status ecs_entity_detach_component(struct ecs_instance *const instance, struct ecs_entity entity);
