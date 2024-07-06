@@ -83,7 +83,6 @@ struct ecs_instance {
     size_t next_id;
     size_t entry_count;
     struct ecs_entities_table table;
-    struct ecs_entity *const null_entity;
 
 };
 #pragma endregion
@@ -96,7 +95,102 @@ size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_
     return to_ret;
 }
 
-void ecs_print_table(struct ecs_instance *p_instance) {
+/*
+size_t ecs_trim(struct ecs_instance *p_instance) {
+    const size_t need = p_instance->entry_count;
+    const struct ecs_entities_table table = p_instance->table;
+
+    size_t diff = 0;
+    size_t to_ret = 0;
+
+    diff = table.counts.capacity - need;
+    if (diff > 0) {
+        to_ret += diff;
+        size_t *array = table.counts.array;
+
+        // cppcheck-suppress memleakOnRealloc
+        array = realloc(array, need * sizeof(size_t));
+        if (array) {
+            p_instance->table.counts.array = array;
+            p_instance->table.counts.capacity = need;
+        }
+    }
+
+    diff = table.counts.capacity - need;
+    if (diff > 0) {
+        to_ret += diff;
+        struct ecs_entity *array = table.entities.array;
+
+        // cppcheck-suppress memleakOnRealloc
+        array = realloc(array, need * sizeof(struct ecs_entity));
+        if (array) {
+            p_instance->table.entities.array = (void*) array;
+            p_instance->table.entities.capacity = need;
+        }
+    }
+
+    diff = table.counts.capacity - need;
+    if (diff > 0) {
+        to_ret += diff;
+        struct ecs_component **array = table.components.darray;
+
+        // cppcheck-suppress memleakOnRealloc
+        array = realloc(array, need * sizeof(struct ecs_component*));
+        if (array) {
+            p_instance->table.components.darray = array;
+            p_instance->table.components.capacity = need;
+        }
+    }
+
+    return to_ret;
+}
+*/
+
+size_t ecs_trim(struct ecs_instance *p_instance) {
+    size_t to_ret = 0;
+    const size_t need = p_instance->entry_count;
+    struct ecs_entities_table *const table = &p_instance->table;
+
+    void **arrays[] = {
+        (void **) &table->counts.array,
+        (void **) &table->entities.array,
+        (void **) &table->components.darray
+    };
+
+    const size_t element_sizes[] = {
+        sizeof(size_t),
+        sizeof(struct ecs_entity),
+        sizeof(struct ecs_component*),
+    };
+
+    size_t *capacities[] = {
+       &table->counts.capacity,
+       &table->entities.capacity,
+       &table->components.capacity
+    };
+
+    for (size_t i = 0; i < sizeof(arrays) / sizeof(arrays[0]); ++i) {
+        const size_t diff = *capacities[i] - need;
+        if (diff > 0) {
+            to_ret += diff * (*capacities[i]);
+            void *array = *arrays[i];
+
+            // cppcheck-suppress memleakOnRealloc
+            if (!(array = realloc(array, need * element_sizes[i])))
+                continue;
+
+            // These are modifications - they won't benefit from "cached values":
+            *(arrays[i]) = array;
+            *(capacities[i]) = need;
+            // The stuff *above* would.
+            // I should leave stuff like this to the compiler anyway!...
+        }
+    }
+
+    return to_ret;
+}
+
+void ecs_print_table(const struct ecs_instance *p_instance) {
     // I have done the table-spaces-sorting thing before, but I'm not doing it this time...
     puts("ECS entities table (format):");
     puts("------------------------------------------------");
@@ -162,7 +256,6 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
 
     to_ret->next_id = 0;
     to_ret->entry_count = 0;
-    ecs_create_entity(to_ret, NULL);
 
     *p_instance = to_ret;
     return ECS_STATUS_OKAY;
@@ -237,8 +330,11 @@ bool ecs_ensure_space(struct ecs_instance *const p_instance, size_t p_entity_cou
     struct ecs_entity *entities = p_instance->table.entities.array;
     struct ecs_component **components = p_instance->table.components.darray;
 
+    // cppcheck-suppress memleakOnRealloc
     counts = realloc(counts, p_instance->table.counts.capacity * 2 * sizeof(size_t));
+    // cppcheck-suppress memleakOnRealloc
     entities = realloc(entities, p_instance->table.entities.capacity * 2 * sizeof(struct ecs_entity));
+    // cppcheck-suppress memleakOnRealloc
     components = realloc(components, p_instance->table.components.capacity * 2 * sizeof(struct ecs_component*));
 
     if (counts) {
@@ -260,7 +356,7 @@ bool ecs_ensure_space(struct ecs_instance *const p_instance, size_t p_entity_cou
 }
 
 enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity *p_entity) {
-    ecs_print_table(p_instance);
+    // ecs_print_table(p_instance);
 
     if (!ecs_ensure_space(p_instance, p_instance->next_id))
         return ECS_STATUS_MALLOC;
@@ -268,11 +364,10 @@ enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct 
     const size_t id = p_instance->next_id;
 
     p_instance->table.entities.array[p_instance->next_id].id = id;
-    p_instance->table.components.darray[id] = NULL;
+    p_instance->table.components.darray[id] = NULL; // Setting it like this because the wild pointer already in-place COULD be valid! That's corrupting our stuff!
     p_instance->table.counts.array[id] = 0;
 
-    const struct ecs_entity *const null_entity = &(p_instance->table.entities.array[0]);
-    if (p_entity && p_entity != null_entity)
+    if (p_entity)
         p_entity->id = id;
 
     // We have reserved our space, dear threads in crime!:
