@@ -95,57 +95,6 @@ size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_
     return to_ret;
 }
 
-/*
-size_t ecs_trim(struct ecs_instance *p_instance) {
-    const size_t need = p_instance->entry_count;
-    const struct ecs_entities_table table = p_instance->table;
-
-    size_t diff = 0;
-    size_t to_ret = 0;
-
-    diff = table.counts.capacity - need;
-    if (diff > 0) {
-        to_ret += diff;
-        size_t *array = table.counts.array;
-
-        // cppcheck-suppress memleakOnRealloc
-        array = realloc(array, need * sizeof(size_t));
-        if (array) {
-            p_instance->table.counts.array = array;
-            p_instance->table.counts.capacity = need;
-        }
-    }
-
-    diff = table.counts.capacity - need;
-    if (diff > 0) {
-        to_ret += diff;
-        struct ecs_entity *array = table.entities.array;
-
-        // cppcheck-suppress memleakOnRealloc
-        array = realloc(array, need * sizeof(struct ecs_entity));
-        if (array) {
-            p_instance->table.entities.array = (void*) array;
-            p_instance->table.entities.capacity = need;
-        }
-    }
-
-    diff = table.counts.capacity - need;
-    if (diff > 0) {
-        to_ret += diff;
-        struct ecs_component **array = table.components.darray;
-
-        // cppcheck-suppress memleakOnRealloc
-        array = realloc(array, need * sizeof(struct ecs_component*));
-        if (array) {
-            p_instance->table.components.darray = array;
-            p_instance->table.components.capacity = need;
-        }
-    }
-
-    return to_ret;
-}
-*/
-
 size_t ecs_trim(struct ecs_instance *p_instance) {
     size_t to_ret = 0;
     const size_t need = p_instance->entry_count;
