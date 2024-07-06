@@ -41,11 +41,11 @@ int main() {
         entities[i] = *e;
     }
 
-    for (size_t i = 0; i < 6; i++)
-        printf("Entity ID `%zu` exists.\n", entities[i].id);
-
-    for (size_t i = 0; i < 6; i++)
-        ecs_destroy_entity(g_ecs, &(entities[i]));
+    for (size_t i = 0; i < 6; i++) {
+        struct ecs_entity e = entities[i];
+        printf("Entity ID `%zu` exists.\n", e.id);
+        ecs_destroy_entity(g_ecs, &e);
+    }
 
     LOG_ECS_CALL(ecs_destroy_instance(g_ecs));
 }

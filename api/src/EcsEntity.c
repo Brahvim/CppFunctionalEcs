@@ -43,7 +43,11 @@ struct ecs_instance {
 };
 
 size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_size) {
-    return (p_element_size != 0 && p_count > __SIZE_MAX__ / p_element_size) ? p_count * p_element_size : 0;
+    const size_t to_ret =
+        (p_element_size != 0 && p_count > __SIZE_MAX__ / p_element_size)
+        ? 0
+        : p_count * p_element_size;
+    return to_ret;
 }
 
 void ecs_print_table(struct ecs_instance *p_instance) {
@@ -61,6 +65,20 @@ void ecs_print_table(struct ecs_instance *p_instance) {
             p_instance->table.components.darray);
     }
     puts("------------------------------------------------");
+}
+
+const char* const ecs_status_to_string(enum ecs_status p_status) {
+    switch (p_status) {
+        default: return "Unknown status";
+        case ECS_STATUS_OKAY:                       return "Okay";
+        case ECS_STATUS_MALLOC:                     return "Memory allocation failure";
+        case ECS_STATUS_INVALID_ENTITY:             return "Invalid `struct ecs_entity`";
+        case ECS_STATUS_INVALID_INSTANCE:           return "Invalid `struct ecs_instance`";
+        case ECS_STATUS_INVALID_COMPONENT:          return "Invalid `struct ecs_component`";
+        case ECS_STATUS_ENTITY_MALLOC:                  return "Memory allocation failure for IDs array";
+        case ECS_STATUS_COMPONENT_MALLOC:          return "Memory allocation failure for components arrays";
+        case ECS_STATUS_COMPONENT_COUNT_MALLOC:    return "Memory allocation failure for component counts array";
+    }
 }
 
 // If you have to write more allocations here, MAKE SURE TO FREE THEM!:
@@ -100,16 +118,6 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
     to_ret->entry_count = 0;
 
     struct ecs_entity *null_entity;
-    null_entity = malloc(sizeof(struct ecs_entity));
-
-    if (!null_entity) {
-        // ecs_trim();
-
-        for (char i = 0; i < 100 || null_entity; ++i) // `100` tries or till the entity is no longer `null`.
-            null_entity = malloc(sizeof(struct ecs_entity));
-        // ...Could totally use a threading API to ensure this didn't up CPU usage too much.
-    }
-
     ecs_create_entity(to_ret, &null_entity);
 
     *p_instance = to_ret;
@@ -209,29 +217,20 @@ enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct 
     if (!ecs_ensure_space(p_instance, p_instance->next_id))
         return ECS_STATUS_MALLOC;
 
-    const size_t next_id = p_instance->next_id;
+    const size_t id = p_instance->next_id;
+
+    struct ecs_entity *to_assign = &(p_instance->table.entities.array[p_instance->next_id]);
+    // Will actually allocate for components only when needed.
+    p_instance->table.component_counts.array[id] = 0;
+    to_assign->id = id;
 
     // We have reserved our space, dear threads in crime!:
     ++(p_instance->next_id);
     ++(p_instance->entry_count);
-
-    enum ecs_status to_ret = ECS_STATUS_OKAY;
-    struct ecs_entity *to_assign = &(p_instance->table.entities.array[p_instance->next_id]);
-
-    if (!to_assign)
-        return ECS_STATUS_ENTITY_MALLOC;
-
-    to_assign->id = next_id;
-    p_instance->table.component_counts.array[next_id] = 0;
-    p_instance->table.components.darray[next_id] = malloc(sizeof(struct ecs_component));
-    // ^^^ Memory for a single component. This ensures that the components array exists for this entity.
-    // Should be refactored into an API call.
-
-    if (!p_instance->table.components.darray[next_id])
-        to_ret = ECS_STATUS_COMPONENT_MALLOC;
+    // (Yeah, I know I'm telling them about it late...)
 
     *p_entity = to_assign;
-    return to_ret;
+    return ECS_STATUS_OKAY;
 }
 
 enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, struct ecs_entity *p_entity) {
@@ -255,19 +254,5 @@ enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, struct
     p_entity->id = 0;
 
     return ECS_STATUS_OKAY;
-}
-
-const char* const ecs_status_to_string(enum ecs_status p_status) {
-    switch (p_status) {
-        default: return "Unknown status";
-        case ECS_STATUS_OKAY:                       return "Okay";
-        case ECS_STATUS_MALLOC:                     return "Memory allocation failure";
-        case ECS_STATUS_INVALID_ENTITY:             return "Invalid `struct ecs_entity`";
-        case ECS_STATUS_INVALID_INSTANCE:           return "Invalid `struct ecs_instance`";
-        case ECS_STATUS_INVALID_COMPONENT:          return "Invalid `struct ecs_component`";
-        case ECS_STATUS_ENTITY_MALLOC:                  return "Memory allocation failure for IDs array";
-        case ECS_STATUS_COMPONENT_MALLOC:          return "Memory allocation failure for components arrays";
-        case ECS_STATUS_COMPONENT_COUNT_MALLOC:    return "Memory allocation failure for component counts array";
-    }
 }
 #pragma endregion
