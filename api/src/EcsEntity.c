@@ -30,7 +30,7 @@ struct ecs_entities_table {
 
     struct ecs_entities_array entities;
     struct ecs_components_array components;
-    struct ecs_component_counts_array component_counts;
+    struct ecs_component_counts_array counts;
 
 };
 
@@ -91,28 +91,28 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
     // Initialization:
 
     // NOLINTBEGIN(clang-analyzer-optin.portability.UnixAPI)
-    to_ret->table.component_counts.array = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(size_t)));
+    to_ret->table.counts.array = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(size_t)));
     to_ret->table.entities.array = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(struct ecs_entity)));
     to_ret->table.components.darray = malloc(check_overflow_calloc_style(ECS_INITIAL_ENTITY_CAPACITY, sizeof(struct ecs_component*)));
     // NOLINTEND(clang-analyzer-optin.portability.UnixAPI)
 
     // Checks (in the given order because checks on data "seated deeper" *might* be optimized by cache.
     // Of course that's not necessary at all here - just felt like telling what I noticed):
-    if (!to_ret->table.entities.array) {
-        *p_instance = to_ret;
-        return ECS_STATUS_ENTITY_MALLOC;
-    } else to_ret->table.entities.capacity = ECS_INITIAL_ENTITY_CAPACITY;
-
-    // PS We set the `*p_instance` at tail ends (right before returning) due to the possibility of threaded code.
     if (!to_ret->table.components.darray) {
         *p_instance = to_ret;
         return ECS_STATUS_COMPONENT_MALLOC;
     } else to_ret->table.components.capacity = ECS_INITIAL_ENTITY_CAPACITY;
 
-    if (!to_ret->table.component_counts.array) {
+    // PS We set the `*p_instance` at tail ends (right before returning) due to the possibility of threaded code.
+    if (!to_ret->table.entities.array) {
+        *p_instance = to_ret;
+        return ECS_STATUS_ENTITY_MALLOC;
+    } else to_ret->table.entities.capacity = ECS_INITIAL_ENTITY_CAPACITY;
+
+    if (!to_ret->table.counts.array) {
         *p_instance = to_ret;
         return ECS_STATUS_COMPONENT_COUNT_MALLOC;
-    } else to_ret->table.component_counts.capacity = ECS_INITIAL_ENTITY_CAPACITY;
+    } else to_ret->table.counts.capacity = ECS_INITIAL_ENTITY_CAPACITY;
 
     to_ret->next_id = 0;
     to_ret->entry_count = 0;
@@ -138,7 +138,7 @@ enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
         goto free_instance_now;
 
 #pragma region // Free the `table`!
-    size_t *counts = table->component_counts.array;
+    size_t *counts = table->counts.array;
     struct ecs_component **components = table->components.darray;
 
     if (table->entities.array)
@@ -184,18 +184,18 @@ enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
 }
 
 bool ecs_ensure_space(struct ecs_instance *p_instance, size_t p_entity_count) {
-    if (p_instance->table.component_counts.capacity >= p_entity_count
+    if (p_instance->table.counts.capacity >= p_entity_count
         && p_instance->table.components.capacity >= p_entity_count
         && p_instance->table.entities.capacity >= p_entity_count)
         return true;
 
-    size_t *counts = realloc(p_instance->table.component_counts.array, p_entity_count * sizeof(size_t));
+    size_t *counts = realloc(p_instance->table.counts.array, p_entity_count * sizeof(size_t));
     struct ecs_entity *entities = realloc(p_instance->table.entities.array, p_entity_count * sizeof(struct ecs_entity));
     struct ecs_component **components = realloc(p_instance->table.components.darray, p_entity_count * sizeof(struct ecs_component*));
 
     if (counts) {
-        p_instance->table.component_counts.array = counts;
-        p_instance->table.component_counts.capacity = p_entity_count;
+        p_instance->table.counts.array = counts;
+        p_instance->table.counts.capacity = p_entity_count;
     }
 
     if (entities) {
@@ -220,8 +220,8 @@ enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct 
     const size_t id = p_instance->next_id;
 
     struct ecs_entity *to_assign = &(p_instance->table.entities.array[p_instance->next_id]);
-    // Will actually allocate for components only when needed.
-    p_instance->table.component_counts.array[id] = 0;
+    p_instance->table.components.darray[id] = NULL;
+    p_instance->table.counts.array[id] = 0;
     to_assign->id = id;
 
     // We have reserved our space, dear threads in crime!:
@@ -248,8 +248,8 @@ enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, struct
     if (i == p_instance->entry_count)
         return ECS_STATUS_INVALID_ENTITY;
 
-    p_instance->table.component_counts.array[i] = p_instance->table.component_counts.array[p_instance->entry_count - 1];
     p_instance->table.components.darray[i] = p_instance->table.components.darray[p_instance->entry_count - 1];
+    p_instance->table.counts.array[i] = p_instance->table.counts.array[p_instance->entry_count - 1];
     --(p_instance->entry_count);
     p_entity->id = 0;
 
