@@ -30,6 +30,8 @@ int main() {
 
     printf("ECS entity count: `%zu`.\n", ecs_context_entity_count(s_ecs));
     printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
+    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
+    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
 
     for (size_t i = 0; i < s_entity_count; ++i) {
         if (i % 1000 == 0)
