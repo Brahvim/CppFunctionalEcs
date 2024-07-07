@@ -1,8 +1,9 @@
 #pragma once
 
+#include "threads.h"
 #include "EcsComponent.h"
 
-struct position_component {
+struct position_component_data {
 
     float x;
 
@@ -20,7 +21,7 @@ enum position_component_status {
 
 };
 
-extern const struct ecs_component_type position_component_type;
+extern const struct ecs_component_type *const position_component_type;
 
 size_t position_component_count(struct ecs_context *context);
 struct ecs_entity* position_component_get_parent(struct ecs_component *component);

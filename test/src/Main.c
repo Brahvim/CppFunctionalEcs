@@ -4,12 +4,12 @@
 #include "Ecs.h"
 #include "PositionComponent.h"
 
-static struct ecs_context *s_ecs;
-static const size_t s_entity_count = 500;
-
 #define LOG_ECS_CALL(call)  \
-printf("`" #call "` (line `%d`): %s.\n", __LINE__, ecs_status_to_string(call))
-// printf("ECS `" #call "` call status [" __FILE__ ": %d ]: %s.\n", __LINE__, ecs_status_to_string(call))
+printf("`" #call "` (line `%d`): %s.\n", __LINE__, ecs_context_status_to_string(call))
+// printf("ECS `" #call "` call status [" __FILE__ ": %d ]: %s.\n", __LINE__, ecs_context_status_to_string(call))
+
+static struct ecs_context *s_ecs;
+static const size_t s_entity_count = 5;
 
 int main() {
     LOG_ECS_CALL(ecs_context_create(&s_ecs));
@@ -22,18 +22,22 @@ int main() {
     }
 
     for (size_t i = 0; i < s_entity_count; i++) {
-        printf("Allocating entity `%zu`: ", i);
+        // printf("Allocating entity `%zu`.\n", i);
         LOG_ECS_CALL(ecs_entity_create(s_ecs, &(entities[i])));
     }
 
-    for (size_t i = 0; i < s_entity_count; i++) {
-        struct ecs_entity e = entities[i];
-        // printf("Entity ID `%zu` exists.\n", e.id);
-        ecs_entity_destroy(s_ecs, &e);
+    printf("ECS entity count: `%zu`.\n", ecs_context_entity_count(s_ecs));
+    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
+
+    for (size_t i = 0; i < s_entity_count; ++i) {
+        printf("Deallocating entity `%zu`.\n", i);
+        ecs_entity_destroy(s_ecs, entities[i]);
     }
 
-    // ecs_print_table(s_ecs);
-    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_trim(s_ecs));
+    printf("ECS entity count: `%zu`.\n", ecs_context_entity_count(s_ecs));
+    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
+    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
+    printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_context_trim(s_ecs));
 
     LOG_ECS_CALL(ecs_context_destroy(s_ecs));
 }

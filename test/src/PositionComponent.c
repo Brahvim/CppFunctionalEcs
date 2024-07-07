@@ -4,7 +4,7 @@
 struct position_component_positions_array {
 
     size_t capacity;
-    float *array; // One 64-bit cache-line can fit 16 `float`s - nearly `5.3` positions - 5 complete 3D vectors, plus one's `x`.
+    struct position_component_data *array; // One 64-bit cache-line can fit 16 `float`s - nearly `5.3` positions - 5 complete 3D vectors, plus one's `x`.
 
 };
 
@@ -15,13 +15,13 @@ struct position_component_table {
 
 };
 
-const struct ecs_component_type position_component_type = {
+const struct ecs_component_type *const position_component_type = &((struct ecs_component_type) {
 
     .instances_per_entity = __SIZE_MAX__,
-    .detacher = position_component_detach,
-    .attacher = position_component_attach,
+        .detacher = position_component_detach,
+        .attacher = position_component_attach,
 
-};
+});
 
 static struct position_component_table s_component_data = {
 
