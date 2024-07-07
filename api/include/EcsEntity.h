@@ -36,8 +36,8 @@ enum ecs_status {
 };
 
 // Context creation/destruction:
-enum ecs_status ecs_create_context(struct ecs_context **context);
-enum ecs_status ecs_destroy_context(struct ecs_context *context);
+enum ecs_status ecs_context_create(struct ecs_context **context);
+enum ecs_status ecs_context_destroy(struct ecs_context *context);
 
 // Utilities:
 size_t ecs_trim(struct ecs_context *context);
@@ -45,11 +45,11 @@ void ecs_print_table(const struct ecs_context *context);
 const char* const ecs_status_to_string(enum ecs_status status);
 bool ecs_ensure_space(struct ecs_context *const context, size_t entity_count);
 
-size_t ecs_get_entity_component_count(struct ecs_context *context, struct ecs_entity entity);
+size_t ecs_entity_get_component_count(struct ecs_context *context, struct ecs_entity entity);
 
 // Entity creation/destruction:
-enum ecs_status ecs_create_entity(struct ecs_context *const context, struct ecs_entity *entity);
-enum ecs_status ecs_destroy_entity(struct ecs_context *const context, struct ecs_entity *entity);
+enum ecs_status ecs_entity_create(struct ecs_context *const context, struct ecs_entity *entity);
+enum ecs_status ecs_entity_destroy(struct ecs_context *const context, struct ecs_entity *entity);
 
 enum ecs_status ecs_entity_add_component(struct ecs_context *const context, struct ecs_component *component);
 enum ecs_status ecs_entity_remove_component(struct ecs_context *const context, struct ecs_component *component);

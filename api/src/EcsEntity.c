@@ -171,7 +171,7 @@ const char* const ecs_status_to_string(enum ecs_status p_status) {
 }
 
 // If you have to write more allocations here, MAKE SURE TO FREE THEM!:
-enum ecs_status ecs_create_context(struct ecs_context **p_context) {
+enum ecs_status ecs_context_create(struct ecs_context **p_context) {
     struct ecs_context *to_ret = malloc(sizeof(struct ecs_context));
 
     if (!to_ret)
@@ -214,7 +214,7 @@ enum ecs_status ecs_create_context(struct ecs_context **p_context) {
 // If you're here to edit this one, good luck.
 // Remember to take your time. You **need** to give this guy a lot of time.
 // *Don't run away!*
-enum ecs_status ecs_destroy_context(struct ecs_context *p_context) {
+enum ecs_status ecs_context_destroy(struct ecs_context *p_context) {
     if (!p_context)
         return ECS_STATUS_INVALID_CONTEXT;
 
@@ -304,7 +304,7 @@ bool ecs_ensure_space(struct ecs_context *const p_context, size_t p_entity_count
     return counts && entities && components;
 }
 
-enum ecs_status ecs_create_entity(struct ecs_context *const p_context, struct ecs_entity *p_entity) {
+enum ecs_status ecs_entity_create(struct ecs_context *const p_context, struct ecs_entity *p_entity) {
     // ecs_print_table(p_context);
 
     if (!ecs_ensure_space(p_context, p_context->next_id))
@@ -327,7 +327,7 @@ enum ecs_status ecs_create_entity(struct ecs_context *const p_context, struct ec
     return ECS_STATUS_OKAY;
 }
 
-enum ecs_status ecs_destroy_entity(struct ecs_context *const p_context, struct ecs_entity *p_entity) {
+enum ecs_status ecs_entity_destroy(struct ecs_context *const p_context, struct ecs_entity *p_entity) {
     if (p_entity->id == 0)
         return ECS_STATUS_INVALID_ENTITY;
 
