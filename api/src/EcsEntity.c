@@ -252,7 +252,7 @@ enum ecs_status ecs_context_destroy(struct ecs_context *p_context) {
         // ...And detach all components inside!:
         for (size_t j = 0; j < counts[i]; ++j) {
             struct ecs_component c = array[j];
-            c.type->destructor(&c);
+            c.type->detacher(&c);
         }
 
         free(array);

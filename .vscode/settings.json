@@ -59,7 +59,8 @@
         "optional": "cpp",
         "positioncomponent.h": "c",
         "stdlib.h": "c",
-        "stddef.h": "c"
+        "stddef.h": "c",
+        "pthread.h": "c"
     },
     "c-cpp-flylint.excludeFromWorkspacePaths": [
         "build",
