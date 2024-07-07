@@ -223,4 +223,5 @@ const char* const ecs_context_status_to_string(enum ecs_status p_status) {
 size_t ecs_context_entity_count(const struct ecs_context *const p_context) {
     return p_context->entry_count;
 }
+
 #pragma endregion
