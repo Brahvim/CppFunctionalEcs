@@ -6,6 +6,9 @@
 #include "EcsComponent.h"
 #include "EcsComponentType.h"
 
+#define ECS_NO_ERROR(x) !(x)
+#define ECS_HAS_ERROR(x) (x)
+
 // ...Still keeping the SoA structure:
 struct ecs_context;
 
@@ -17,21 +20,21 @@ struct ecs_entity {
 
 enum ecs_status {
 
-    ECS_STATUS_OKAY = 1,
+    ECS_STATUS_OKAY = 0,
 
-    ECS_STATUS_MALLOC = 2,
+    ECS_STATUS_MALLOC = 1,
 
-    ECS_STATUS_ENTITY_MALLOC = 4,
+    ECS_STATUS_ENTITY_MALLOC = 2,
 
-    ECS_STATUS_INVALID_ENTITY = 8,
+    ECS_STATUS_INVALID_ENTITY = 4,
 
-    ECS_STATUS_INVALID_CONTEXT = 16,
+    ECS_STATUS_INVALID_CONTEXT = 8,
 
-    ECS_STATUS_COMPONENT_MALLOC = 32,
+    ECS_STATUS_COMPONENT_MALLOC = 16,
 
-    ECS_STATUS_INVALID_COMPONENT = 64,
+    ECS_STATUS_INVALID_COMPONENT = 32,
 
-    ECS_STATUS_COMPONENT_COUNT_MALLOC = 128,
+    ECS_STATUS_COMPONENT_COUNT_MALLOC = 64,
 
 };
 

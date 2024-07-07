@@ -69,7 +69,7 @@ struct ecs_entities_array {
 
 };
 
-struct ecs_entities_table {
+struct ecs_context_table {
 
     struct ecs_entities_array entities;
     struct ecs_component_caps_array caps;
@@ -82,7 +82,7 @@ struct ecs_context {
 
     size_t next_id;
     size_t entry_count;
-    struct ecs_entities_table table;
+    struct ecs_context_table table;
 
 };
 #pragma endregion
@@ -98,7 +98,7 @@ size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_
 size_t ecs_trim(struct ecs_context *p_context) {
     size_t to_ret = 0;
     const size_t need = p_context->entry_count;
-    struct ecs_entities_table *const table = &p_context->table;
+    struct ecs_context_table *const table = &p_context->table;
 
     void **arrays[] = {
         (void **) &table->counts.array,
@@ -218,7 +218,7 @@ enum ecs_status ecs_context_destroy(struct ecs_context *p_context) {
     if (!p_context)
         return ECS_STATUS_INVALID_CONTEXT;
 
-    struct ecs_entities_table *table = &(p_context->table);
+    struct ecs_context_table *table = &(p_context->table);
 
     if (!table)
         goto free_context_now;
