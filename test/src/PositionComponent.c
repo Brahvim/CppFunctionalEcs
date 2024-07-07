@@ -1,6 +1,7 @@
 #include "Ecs.h"
 #include "PositionComponent.h"
 
+#pragma region // `struct`s.
 struct position_component_positions_array {
 
     size_t capacity;
@@ -14,6 +15,7 @@ struct position_component_table {
     struct position_component_positions_array positions;
 
 };
+#pragma endregion
 
 const struct ecs_component_type *const position_component_type = &((struct ecs_component_type) {
 
