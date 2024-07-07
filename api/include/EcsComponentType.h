@@ -14,7 +14,7 @@ typedef ecs_component_status(ecs_component_constructor_t)(struct ecs_entity enti
 
 struct ecs_component_type {
 
-    const size_t instances_per_entity;
+    const size_t contexts_per_entity;
     ecs_component_data_getter_t *getter;
     ecs_component_destructor_t *destructor;
     ecs_component_constructor_t *constructor;

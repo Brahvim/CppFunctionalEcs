@@ -78,7 +78,7 @@ struct ecs_entities_table {
 
 };
 
-struct ecs_instance {
+struct ecs_context {
 
     size_t next_id;
     size_t entry_count;
@@ -95,10 +95,10 @@ size_t check_overflow_calloc_style(const size_t p_count, const size_t p_element_
     return to_ret;
 }
 
-size_t ecs_trim(struct ecs_instance *p_instance) {
+size_t ecs_trim(struct ecs_context *p_context) {
     size_t to_ret = 0;
-    const size_t need = p_instance->entry_count;
-    struct ecs_entities_table *const table = &p_instance->table;
+    const size_t need = p_context->entry_count;
+    struct ecs_entities_table *const table = &p_context->table;
 
     void **arrays[] = {
         (void **) &table->counts.array,
@@ -139,7 +139,7 @@ size_t ecs_trim(struct ecs_instance *p_instance) {
     return to_ret;
 }
 
-void ecs_print_table(const struct ecs_instance *p_instance) {
+void ecs_print_table(const struct ecs_context *p_context) {
     // I have done the table-spaces-sorting thing before, but I'm not doing it this time...
     puts("ECS entities table (format):");
     puts("------------------------------------------------");
@@ -147,11 +147,11 @@ void ecs_print_table(const struct ecs_instance *p_instance) {
     puts("------------------------------------------------");
     puts("Table data:");
     puts("------------------------------------------------");
-    for (size_t i = 0; i < p_instance->entry_count; ++i) {
+    for (size_t i = 0; i < p_context->entry_count; ++i) {
         printf("| %zu | %zu | %p |\n",
             i,
-            p_instance->table.entities.array[i].id,
-            p_instance->table.components.darray);
+            p_context->table.entities.array[i].id,
+            p_context->table.components.darray);
     }
     puts("------------------------------------------------");
 }
@@ -162,7 +162,7 @@ const char* const ecs_status_to_string(enum ecs_status p_status) {
         case ECS_STATUS_OKAY:                       return "Okay";
         case ECS_STATUS_MALLOC:                     return "Memory allocation failure";
         case ECS_STATUS_INVALID_ENTITY:             return "Invalid `struct ecs_entity`";
-        case ECS_STATUS_INVALID_INSTANCE:           return "Invalid `struct ecs_instance`";
+        case ECS_STATUS_INVALID_CONTEXT:           return "Invalid `struct ecs_context`";
         case ECS_STATUS_INVALID_COMPONENT:          return "Invalid `struct ecs_component`";
         case ECS_STATUS_ENTITY_MALLOC:              return "Memory allocation failure for IDs array";
         case ECS_STATUS_COMPONENT_MALLOC:           return "Memory allocation failure for components arrays";
@@ -171,8 +171,8 @@ const char* const ecs_status_to_string(enum ecs_status p_status) {
 }
 
 // If you have to write more allocations here, MAKE SURE TO FREE THEM!:
-enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
-    struct ecs_instance *to_ret = malloc(sizeof(struct ecs_instance));
+enum ecs_status ecs_create_context(struct ecs_context **p_context) {
+    struct ecs_context *to_ret = malloc(sizeof(struct ecs_context));
 
     if (!to_ret)
         return ECS_STATUS_MALLOC;
@@ -188,25 +188,25 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
     // Checks (in the given order because checks on data "seated deeper" *might* be optimized by cache.
     // Of course that's not necessary at all here - just felt like telling what I noticed):
     if (!to_ret->table.components.darray) {
-        *p_instance = to_ret;
+        *p_context = to_ret;
         return ECS_STATUS_COMPONENT_MALLOC;
     } else to_ret->table.components.capacity = ECS_INITIAL_ENTITY_CAPACITY;
 
-    // PS We set the `*p_instance` at tail ends (right before returning) due to the possibility of threaded code.
+    // PS We set the `*p_context` at tail ends (right before returning) due to the possibility of threaded code.
     if (!to_ret->table.entities.array) {
-        *p_instance = to_ret;
+        *p_context = to_ret;
         return ECS_STATUS_ENTITY_MALLOC;
     } else to_ret->table.entities.capacity = ECS_INITIAL_ENTITY_CAPACITY;
 
     if (!to_ret->table.counts.array) {
-        *p_instance = to_ret;
+        *p_context = to_ret;
         return ECS_STATUS_COMPONENT_COUNT_MALLOC;
     } else to_ret->table.counts.capacity = ECS_INITIAL_ENTITY_CAPACITY;
 
     to_ret->next_id = 0;
     to_ret->entry_count = 0;
 
-    *p_instance = to_ret;
+    *p_context = to_ret;
     return ECS_STATUS_OKAY;
 }
 
@@ -214,14 +214,14 @@ enum ecs_status ecs_create_instance(struct ecs_instance **p_instance) {
 // If you're here to edit this one, good luck.
 // Remember to take your time. You **need** to give this guy a lot of time.
 // *Don't run away!*
-enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
-    if (!p_instance)
-        return ECS_STATUS_INVALID_INSTANCE;
+enum ecs_status ecs_destroy_context(struct ecs_context *p_context) {
+    if (!p_context)
+        return ECS_STATUS_INVALID_CONTEXT;
 
-    struct ecs_entities_table *table = &(p_instance->table);
+    struct ecs_entities_table *table = &(p_context->table);
 
     if (!table)
-        goto free_instance_now;
+        goto free_context_now;
 
 #pragma region // Free the `table`!
     size_t *counts = table->counts.array;
@@ -232,17 +232,17 @@ enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
 
     if (!counts) {
         free(components);
-        goto free_instance_now;
+        goto free_context_now;
     }
 
     if (!components) {
         free(counts);
-        goto free_instance_now;
+        goto free_context_now;
     }
 
 #pragma region // Destroy the components!
     // For every entry:
-    for (size_t i = 0; i < p_instance->entry_count; ++i) {
+    for (size_t i = 0; i < p_context->entry_count; ++i) {
         // Fetch its array:
         struct ecs_component *array = components[i];
 
@@ -264,87 +264,87 @@ enum ecs_status ecs_destroy_instance(struct ecs_instance *p_instance) {
 #pragma endregion
 
     // VSCode keeps indenting this:
-    free_instance_now:
-    free(p_instance);
+    free_context_now:
+    free(p_context);
     return ECS_STATUS_OKAY;
 }
 
-bool ecs_ensure_space(struct ecs_instance *const p_instance, size_t p_entity_count) {
-    if (p_instance->table.counts.capacity >= p_entity_count
-        && p_instance->table.components.capacity >= p_entity_count
-        && p_instance->table.entities.capacity >= p_entity_count)
+bool ecs_ensure_space(struct ecs_context *const p_context, size_t p_entity_count) {
+    if (p_context->table.counts.capacity >= p_entity_count
+        && p_context->table.components.capacity >= p_entity_count
+        && p_context->table.entities.capacity >= p_entity_count)
         return true;
 
-    size_t *counts = p_instance->table.counts.array;
-    struct ecs_entity *entities = p_instance->table.entities.array;
-    struct ecs_component **components = p_instance->table.components.darray;
+    size_t *counts = p_context->table.counts.array;
+    struct ecs_entity *entities = p_context->table.entities.array;
+    struct ecs_component **components = p_context->table.components.darray;
 
     // cppcheck-suppress memleakOnRealloc
-    counts = realloc(counts, p_instance->table.counts.capacity * 2 * sizeof(size_t));
+    counts = realloc(counts, p_context->table.counts.capacity * 2 * sizeof(size_t));
     // cppcheck-suppress memleakOnRealloc
-    entities = realloc(entities, p_instance->table.entities.capacity * 2 * sizeof(struct ecs_entity));
+    entities = realloc(entities, p_context->table.entities.capacity * 2 * sizeof(struct ecs_entity));
     // cppcheck-suppress memleakOnRealloc
-    components = realloc(components, p_instance->table.components.capacity * 2 * sizeof(struct ecs_component*));
+    components = realloc(components, p_context->table.components.capacity * 2 * sizeof(struct ecs_component*));
 
     if (counts) {
-        p_instance->table.counts.capacity *= 2;
-        p_instance->table.counts.array = counts;
+        p_context->table.counts.capacity *= 2;
+        p_context->table.counts.array = counts;
     }
 
     if (entities) {
-        p_instance->table.entities.capacity *= 2;
-        p_instance->table.entities.array = entities;
+        p_context->table.entities.capacity *= 2;
+        p_context->table.entities.array = entities;
     }
 
     if (components) {
-        p_instance->table.components.capacity *= 2;
-        p_instance->table.components.darray = components;
+        p_context->table.components.capacity *= 2;
+        p_context->table.components.darray = components;
     }
 
     return counts && entities && components;
 }
 
-enum ecs_status ecs_create_entity(struct ecs_instance *const p_instance, struct ecs_entity *p_entity) {
-    // ecs_print_table(p_instance);
+enum ecs_status ecs_create_entity(struct ecs_context *const p_context, struct ecs_entity *p_entity) {
+    // ecs_print_table(p_context);
 
-    if (!ecs_ensure_space(p_instance, p_instance->next_id))
+    if (!ecs_ensure_space(p_context, p_context->next_id))
         return ECS_STATUS_MALLOC;
 
-    const size_t id = p_instance->next_id;
+    const size_t id = p_context->next_id;
 
-    p_instance->table.entities.array[p_instance->next_id].id = id;
-    p_instance->table.components.darray[id] = NULL; // Setting it like this because the wild pointer already in-place COULD be valid! That's corrupting our stuff!
-    p_instance->table.counts.array[id] = 0;
+    p_context->table.entities.array[p_context->next_id].id = id;
+    p_context->table.components.darray[id] = NULL; // Setting it like this because the wild pointer already in-place COULD be valid! That's corrupting our stuff!
+    p_context->table.counts.array[id] = 0;
 
     if (p_entity)
         p_entity->id = id;
 
     // We have reserved our space, dear threads in crime!:
-    ++(p_instance->next_id);
-    ++(p_instance->entry_count);
+    ++(p_context->next_id);
+    ++(p_context->entry_count);
     // (Yeah, I know I'm telling them about it late...)
 
     return ECS_STATUS_OKAY;
 }
 
-enum ecs_status ecs_destroy_entity(struct ecs_instance *const p_instance, struct ecs_entity *p_entity) {
+enum ecs_status ecs_destroy_entity(struct ecs_context *const p_context, struct ecs_entity *p_entity) {
     if (p_entity->id == 0)
         return ECS_STATUS_INVALID_ENTITY;
 
     size_t i = 0;
 
     // TODO Replace with map when that happens, else a cache-aware search!:
-    for (; i < p_instance->entry_count; ++i)
-        if (p_instance->table.entities.array[i].id == p_entity->id)
+    for (; i < p_context->entry_count; ++i)
+        if (p_context->table.entities.array[i].id == p_entity->id)
             break;
 
     // Remember - `entry_count` is itself out-of-bounds. It is the upper limit:
-    if (i == p_instance->entry_count)
+    if (i == p_context->entry_count)
         return ECS_STATUS_INVALID_ENTITY;
 
-    p_instance->table.components.darray[i] = p_instance->table.components.darray[p_instance->entry_count - 1];
-    p_instance->table.counts.array[i] = p_instance->table.counts.array[p_instance->entry_count - 1];
-    --(p_instance->entry_count);
+    p_context->table.components.darray[i] = p_context->table.components.darray[p_context->entry_count - 1];
+    p_context->table.counts.array[i] = p_context->table.counts.array[p_context->entry_count - 1];
+    --(p_context->entry_count);
     p_entity->id = 0;
 
     return ECS_STATUS_OKAY;

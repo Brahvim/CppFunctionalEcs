@@ -4,7 +4,7 @@
 #include "Ecs.h"
 #include "PositionComponent.h"
 
-static struct ecs_instance *s_ecs;
+static struct ecs_context *s_ecs;
 static const size_t s_entity_count = 500;
 
 #define LOG_ECS_CALL(call)  \
@@ -12,7 +12,7 @@ printf("`" #call "` (line `%d`): %s.\n", __LINE__, ecs_status_to_string(call))
 // printf("ECS `" #call "` call status [" __FILE__ ": %d ]: %s.\n", __LINE__, ecs_status_to_string(call))
 
 int main() {
-    LOG_ECS_CALL(ecs_create_instance(&s_ecs));
+    LOG_ECS_CALL(ecs_create_context(&s_ecs));
 
     struct ecs_entity *const entities = calloc(sizeof(struct ecs_entity), s_entity_count);
 
@@ -35,5 +35,5 @@ int main() {
     // ecs_print_table(s_ecs);
     printf("ECS trimmed. Memory recovered: `%zu` bytes.\n", ecs_trim(s_ecs));
 
-    LOG_ECS_CALL(ecs_destroy_instance(s_ecs));
+    LOG_ECS_CALL(ecs_destroy_context(s_ecs));
 }
