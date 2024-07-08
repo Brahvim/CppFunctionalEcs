@@ -3,6 +3,7 @@
 #include "EcsEntity.h"
 #include "EcsSystem.h"
 
+#include "EcsThreads.h"
 #include "EcsContext.h"
 #include "EcsComponent.h"
 #include "EcsComponentType.h"

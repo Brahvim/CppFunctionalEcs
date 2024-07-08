@@ -61,7 +61,10 @@
         "stdlib.h": "c",
         "stddef.h": "c",
         "pthread.h": "c",
-        "ecs.h": "c"
+        "ecs.h": "c",
+        "threads.h": "c",
+        "thermal.h": "c",
+        "posix_opt.h": "c"
     },
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",

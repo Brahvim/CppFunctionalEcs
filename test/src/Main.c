@@ -50,9 +50,9 @@ int main() {
     }
 
     print_count_and_trim_thrice();
+
     for (size_t i = 0; i < s_entity_count; ++i) {
-        if (i % 1000 == 0)
-            printf("Deallocating entity `%zu`.\n", i);
+        // printf("Deallocating entity `%zu`.\n", i);
         ecs_entity_destroy(s_ecs, entities[i]);
     }
 
